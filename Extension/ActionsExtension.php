@@ -111,8 +111,8 @@ class ActionsExtension extends AbstractExtension
 
     /**
      * @param $controller
-     * @param array $attributes
-     * @param array $options
+     * @param  array $attributes
+     * @param  array $options
      * @return mixed
      *
      * @since Symfony-2.2

@@ -32,6 +32,8 @@ use Symfony\Component\Form\AbstractRendererEngine;
 use Symfony\Component\Form\FormView;
 
 /**
+ * Adapter for rendering form templates with the Smarty templating engine.
+ *
  * @author Vítor Brandão <vitor@noiselabs.org>
  */
 class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRendererEngineInterface

@@ -30,8 +30,7 @@ namespace NoiseLabs\Bundle\SmartyBundle\Extension\Plugin;
 use NoiseLabs\Bundle\SmartyBundle\Extension\ExtensionInterface;
 
 /**
- * The Plugin base class represents a OO approach to the Smarty plugin
- * architecture.
+ * The Plugin base class represents a OO approach to the Smarty plugin architecture.
  *
  * See {@link http://www.smarty.net/docs/en/plugins.tpl}.
  *
@@ -43,25 +42,36 @@ abstract class AbstractPlugin implements PluginInterface
      * Available plugin types.
      * @var array
      */
-    protected static $types = array('function', 'modifier', 'block',
-    'compiler', 'prefilter', 'postfilter', 'outputfilter', 'resource',
-    'insert');
+    protected static $types = array('function', 'modifier', 'block', 'compiler', 'prefilter', 'postfilter',
+        'outputfilter', 'resource', 'insert');
+
+    /**
+     * @var string
+     */
     protected $name;
+
+    /**
+     * @var \NoiseLabs\Bundle\SmartyBundle\Extension\ExtensionInterface
+     */
     protected $extension;
-    protected $method;
+
+    /**
+     * @var string|array
+     */
+    protected $callback;
 
     /**
      * Constructor.
      *
      * @param string             $name      The plugin name
      * @param ExtensionInterface $extension A ExtensionInterface instance
-     * @param string             $method    Method name
+     * @param string|array       $method    Method name or callback array
      */
     public function __construct($name, ExtensionInterface $extension, $method)
     {
         $this->name = $name;
         $this->extension = $extension;
-        $this->method = $method;
+        $this->callback = is_array($method) ? $method : array($this->extension, $method);
     }
 
     /**
@@ -85,7 +95,7 @@ abstract class AbstractPlugin implements PluginInterface
      */
     public function getCallback()
     {
-        return array($this->extension, $this->method);
+        return $this->callback;
     }
 
     /**

@@ -34,7 +34,7 @@ use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderInterface;
 
 /**
- * Renders a Symfony2 form in a Smarty template.
+ * Renders Symfony2 forms in a Smarty template.
  *
  * @author Vítor Brandão <vitor@noiselabs.org>
  */
@@ -47,7 +47,7 @@ class SmartyRenderer extends FormRenderer implements SmartyRendererInterface
     private $engine;
 
     /**
-     * @param \NoiseLabs\Bundle\SmartyBundle\Form\SmartyRendererEngineInterface $engine
+     * @param \NoiseLabs\Bundle\SmartyBundle\Form\SmartyRendererEngineInterface              $engine
      * @param \Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderInterface|null $csrfProvider
      */
     public function __construct(SmartyRendererEngineInterface $engine, CsrfProviderInterface $csrfProvider = null)
@@ -56,16 +56,4 @@ class SmartyRenderer extends FormRenderer implements SmartyRendererInterface
 
         $this->engine = $engine;
     }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @see
-     */
-    public function searchAndRenderBlock2(FormView $view, $blockNameSuffix, array $variables = array())
-    {
-        var_dump($blockNameSuffix);
-        die('not found');
-    }
-
 }

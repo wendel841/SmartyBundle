@@ -34,7 +34,6 @@ use NoiseLabs\Bundle\SmartyBundle\Form\SmartyRendererInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\Exception\FormException;
 use Symfony\Component\Form\Util\FormUtil;
-use Symfony\Component\Templating\EngineInterface;
 
 /**
  * SmartyBundle extension to render Symfony forms.
@@ -49,15 +48,14 @@ use Symfony\Component\Templating\EngineInterface;
  *  - {@link http://symfony.com/doc/current/book/forms.html#form-theming}
  *  - {@link http://symfony.com/doc/current/cookbook/form/form_customization.html}
  *
- * Thanks to Smarty developers Uwe Tews and Rodney Rehm for 1) patience and 2)
- * insight on Smarty internals.
+ * Thanks to Smarty developers Uwe Tews and Rodney Rehm for 1) patience and 2) insight on Smarty internals.
  *
  * @author Vítor Brandão <vitor@noiselabs.org>
  */
 class FormExtension extends AbstractExtension
 {
     /**
-     * @var \Symfony\Component\Form\FormRendererInterface
+     * @var NoiseLabs\Bundle\SmartyBundle\Form\SmartyRendererInterface
      */
     protected $renderer;
 
@@ -85,6 +83,8 @@ class FormExtension extends AbstractExtension
             new FunctionPlugin('form_rest', $this, 'renderRest'),
             new ModifierPlugin('_form_is_choice_group', $this, 'isChoiceGroup'),
             new ModifierPlugin('_form_is_choice_selected', $this, 'isChoiceSelected'),
+            new ModifierPlugin('form_csrf_token', $this, array($this->renderer, 'renderCsrfToken')),
+            new ModifierPlugin('form_humanize', $this, array($this->renderer, 'humanize')),
         );
     }
 
@@ -119,8 +119,8 @@ class FormExtension extends AbstractExtension
      *
      *     <form action="..." method="post" {form_enctype form=$form}>
      *
-     * @param array  $params   Attributes passed from the template.
-     * @param object $template The \Smarty_Internal_Template instance.
+     * @param array                     $params   Attributes passed from the template.
+     * @param \Smarty_Internal_Template $template The \Smarty_Internal_Template instance.
      *
      * @return string The HTML markup
      */
