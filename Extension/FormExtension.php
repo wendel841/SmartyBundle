@@ -31,6 +31,7 @@ namespace NoiseLabs\Bundle\SmartyBundle\Extension;
 use NoiseLabs\Bundle\SmartyBundle\Extension\Plugin\FunctionPlugin;
 use NoiseLabs\Bundle\SmartyBundle\Extension\Plugin\ModifierPlugin;
 use NoiseLabs\Bundle\SmartyBundle\Form\SmartyRendererInterface;
+use Symfony\Component\Form\Extension\Core\View\ChoiceView;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\Exception\FormException;
 use Symfony\Component\Form\Util\FormUtil;
@@ -81,8 +82,10 @@ class FormExtension extends AbstractExtension
             new FunctionPlugin('form_label', $this, 'renderLabel'),
             new FunctionPlugin('form_row', $this, 'renderRow'),
             new FunctionPlugin('form_rest', $this, 'renderRest'),
-            new ModifierPlugin('_form_is_choice_group', $this, 'isChoiceGroup'),
-            new ModifierPlugin('_form_is_choice_selected', $this, 'isChoiceSelected'),
+            //'form'         => new \Twig_Function_Node('Symfony\Bridge\Twig\Node\RenderBlockNode', array('is_safe' => array('html'))),
+            //'form_start'   => new \Twig_Function_Node('Symfony\Bridge\Twig\Node\RenderBlockNode', array('is_safe' => array('html'))),
+            //'form_end'     => new \Twig_Function_Node('Symfony\Bridge\Twig\Node\RenderBlockNode', array('is_safe' => array('html'))),
+            new ModifierPlugin('form_is_selectedchoice', $this, 'isSelectedChoice'),
             new ModifierPlugin('form_csrf_token', $this, array($this->renderer, 'renderCsrfToken')),
             new ModifierPlugin('form_humanize', $this, array($this->renderer, 'humanize')),
         );
@@ -99,20 +102,6 @@ class FormExtension extends AbstractExtension
     }
 
     /**
-     */
-    public function isChoiceGroup($label)
-    {
-        return FormUtil::isChoiceGroup($label);
-    }
-
-    /**
-     */
-    public function isChoiceSelected(FormView $view, $choice)
-    {
-        return FormUtil::isChoiceSelected($choice, $view->get('value'));
-    }
-
-    /**
      * Renders the HTML enctype in the form tag, if necessary.
      *
      * Example usage in Smarty templates:
@@ -126,9 +115,28 @@ class FormExtension extends AbstractExtension
      */
     public function renderEnctype($params, \Smarty_Internal_Template $template)
     {
-        list($view, $parameters) = $this->extractFunctionParameters($params);
+        list($view) = $this->extractFunctionParameters($params);
 
         return $this->renderer->searchAndRenderBlock($view, 'enctype');
+    }
+
+    /**
+     * Returns whether a choice is selected for a given form value.
+     *
+     * @param ChoiceView   $choice        The choice to check.
+     * @param string|array $selectedValue The selected value to compare.
+     *
+     * @return Boolean Whether the choice is selected.
+     *
+     * @see ChoiceView::isSelected()
+     */
+    public function isSelectedChoice(ChoiceView $choice, $selectedValue)
+    {
+        if (is_array($selectedValue)) {
+            return false !== array_search($choice->value, $selectedValue, true);
+        }
+
+        return $choice->value === $selectedValue;
     }
 
     /**

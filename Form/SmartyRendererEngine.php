@@ -28,6 +28,7 @@
 
 namespace NoiseLabs\Bundle\SmartyBundle\Form;
 
+use NoiseLabs\Bundle\SmartyBundle\SmartyEngine;
 use Symfony\Component\Form\AbstractRendererEngine;
 use Symfony\Component\Form\FormView;
 
@@ -38,6 +39,22 @@ use Symfony\Component\Form\FormView;
  */
 class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRendererEngineInterface
 {
+    /**
+     * @var SmartyEngine
+     */
+    protected $engine;
+
+    /**
+     * @param SmartyEngine $engine
+     * @param array $defaultThemes The default themes. The type of these themes is open to the implementation.
+     */
+    public function __construct(SmartyEngine $engine, array $defaultThemes = array())
+    {
+        $this->engine = $engine;
+
+        parent::__construct($defaultThemes);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -61,5 +78,6 @@ class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRende
      */
     protected function loadResourceForBlockName($cacheKey, FormView $view, $blockName)
     {
+        // SEE: https://github.com/symfony/symfony/blob/2.2/src/Symfony/Bridge/Twig/Form/TwigRendererEngine.php#L79
     }
 }

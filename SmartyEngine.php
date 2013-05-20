@@ -276,6 +276,7 @@ class SmartyEngine implements EngineInterface
      * @param Smarty_Internal_Template|string $template   A template object or resource path
      * @param string                          $name       Function name
      * @param array                           $attributes Attributes to pass to the template function
+     * @throws Exception\RuntimeException If the template function is not defined
      */
     public function renderTemplateFunction($template, $name, array $attributes = array())
     {
@@ -589,11 +590,12 @@ class SmartyEngine implements EngineInterface
     /**
      * Gets the registered Globals.
      *
+     * @param bool $loadExtensions
      * @return array An array of Globals
      */
-    public function getGlobals($load_extensions = true)
+    public function getGlobals($loadExtensions = true)
     {
-        if (true === $load_extensions) {
+        if (true === $loadExtensions) {
             foreach ($this->getExtensions() as $extension) {
                 $this->globals = array_merge($this->globals, $extension->getGlobals());
             }

@@ -17,6 +17,7 @@
         </service>
 
         <service id="smarty.form.engine" class="%smarty.form.engine.class%" public="false">
+            <argument type="service" id="smarty.engine" />
             <argument>%smarty.form.resources%</argument>
         </service>
 
