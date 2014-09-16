@@ -56,6 +56,19 @@ class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRende
     }
 
     /**
+     * @var \Smarty
+     */
+	private $smarty;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setSmarty(\Smarty $smarty)
+    {
+        $this->smarty = $smarty;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function renderBlock(FormView $view, $resource, $blockName, array $variables = array())
@@ -68,16 +81,35 @@ class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRende
     /**
      * Loads the cache with the resource for a given block name.
      *
-     * @see getResourceForBlock()
+     * @see getResourceForBlockName()
      *
      * @param string   $cacheKey  The cache key of the form view.
      * @param FormView $view      The form view for finding the applying themes.
      * @param string   $blockName The name of the block to load.
      *
-     * @return Boolean True if the resource could be loaded, false otherwise.
+     * @return bool    True if the resource could be loaded, false otherwise.
      */
     protected function loadResourceForBlockName($cacheKey, FormView $view, $blockName)
     {
-        // SEE: https://github.com/symfony/symfony/blob/2.2/src/Symfony/Bridge/Twig/Form/TwigRendererEngine.php#L79
+        // The caller guarantees that $this->resources[$cacheKey][$block] is
+        // not set, but it doesn't have to check whether $this->resources[$cacheKey]
+        // is set. If $this->resources[$cacheKey] is set, all themes for this
+        // $cacheKey are already loaded (due to the eager population, see doc comment).
+        if (isset($this->resources[$cacheKey])) {
+            // As said in the previous, the caller guarantees that
+            // $this->resources[$cacheKey][$block] is not set. Since the themes are
+            // already loaded, it can only be a non-existing block.
+            $this->resources[$cacheKey][$blockName] = false;
+
+            return false;
+        }
+
+		// TODO: Check each theme whether it contains the searched block
+
+        // Check the default themes once we reach the root view without success
+        if (!$view->parent) {
+            for ($i = count($this->defaultThemes) - 1; $i >= 0; --$i) {
+			}
+		}
     }
 }

@@ -68,6 +68,7 @@ class FormExtension extends AbstractExtension
     public function __construct(SmartyRendererInterface $renderer)
     {
         $this->renderer = $renderer;
+		$this->renderer->setSmarty(new \Smarty);
     }
 
     /**
@@ -221,7 +222,12 @@ class FormExtension extends AbstractExtension
     {
         list($view, $variables) = $this->extractFunctionParameters($params);
 
-        return $this->render($view, 'label', $variables);
+		$blockName = 'label';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+		return $engine->renderBlock($view, $resource, $blockName, $variables);
     }
 
     /**

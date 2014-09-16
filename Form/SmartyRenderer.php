@@ -56,4 +56,12 @@ class SmartyRenderer extends FormRenderer implements SmartyRendererInterface
 
         $this->engine = $engine;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setSmarty(\Smarty $smarty)
+    {
+        $this->engine->setSmarty($smarty);
+    }
 }
