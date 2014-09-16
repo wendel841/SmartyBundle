@@ -28,27 +28,17 @@
 namespace NoiseLabs\Bundle\SmartyBundle\Extension;
 
 use NoiseLabs\Bundle\SmartyBundle\Extension\Plugin\ModifierPlugin;
-use Symfony\Component\Security\Acl\Voter\FieldVote;
-use Symfony\Component\Security\Core\SecurityContextInterface;
-
+use Symfony\Component\ExpressionLanguage\Expression;
 /**
- * SecurityExtension exposes security context features.
+ * SmartyBundle extension for Symfony actions helper.
  *
- * @author Vítor Brandão <vitor@noiselabs.org>
+ * This extension tries to provide the same functionality described in
+ * {@link http://symfony.com/doc/current/book/security.html#book-security-template-expression}.
+ *
+ * @author Matt Labrum
  */
-class SecurityExtension extends AbstractExtension
+class ExpressionExtension extends AbstractExtension
 {
-    protected $context;
-
-    /**
-     * Constructor.
-     *
-     * @param SecurityContextInterface $context A SecurityContext instance
-     */
-    public function __construct(SecurityContextInterface $context = null)
-    {
-        $this->context = $context;
-    }
 
     /**
      * {@inheritdoc}
@@ -56,30 +46,30 @@ class SecurityExtension extends AbstractExtension
     public function getPlugins()
     {
         return array(
-            new ModifierPlugin('is_granted', $this, 'isGranted'),
+            new ModifierPlugin('expression', $this, 'createExpression'),
         );
     }
 
-    public function isGranted($role, $object = null, $field = null)
+    /**
+     * Creates an expression from a string
+     *
+     * @param string $expression A symfony expression
+     * @see Symfony\Bridge\Twig\Extension\ExpressionExtension::createExpression
+     */
+    public function createExpression($expression)
     {
-        if (null === $this->context) {
-            return false;
-        }
-
-        if (null !== $field) {
-            $object = new FieldVote($object, $field);
-        }
-
-        return $this->context->isGranted($role, $object);
+        return new Expression($expression);
     }
 
     /**
      * Returns the name of the extension.
      *
      * @return string The extension name
+     *
+     * @since  0.1.0
      */
     public function getName()
     {
-        return 'security';
+        return 'expression';
     }
 }
