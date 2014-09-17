@@ -36,10 +36,4 @@ use Symfony\Component\Form\FormRendererEngineInterface;
  */
 interface SmartyRendererEngineInterface extends FormRendererEngineInterface
 {
-    /**
-     * Sets Smarty's environment.
-     *
-     * @param \Smarty $smarty
-     */
-    public function setSmarty(\Smarty $smarty);
 }

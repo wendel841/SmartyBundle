@@ -68,7 +68,6 @@ class FormExtension extends AbstractExtension
     public function __construct(SmartyRendererInterface $renderer)
     {
         $this->renderer = $renderer;
-		$this->renderer->setSmarty(new \Smarty);
     }
 
     /**

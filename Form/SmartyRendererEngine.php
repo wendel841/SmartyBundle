@@ -56,19 +56,6 @@ class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRende
     }
 
     /**
-     * @var \Smarty
-     */
-	private $smarty;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setSmarty(\Smarty $smarty)
-    {
-        $this->smarty = $smarty;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function renderBlock(FormView $view, $resource, $blockName, array $variables = array())

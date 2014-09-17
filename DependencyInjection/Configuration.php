@@ -95,11 +95,11 @@ class Configuration implements ConfigurationInterface
                     ->fixXmlConfig('resource')
                     ->children()
                         ->arrayNode('resources')
-                            ->defaultValue(array('form_div_layout.html.tpl'))
+                            ->defaultValue(array('form_div_layout.html.smarty'))
                             ->validate()
-                                ->ifTrue(function ($v) { return !in_array('form_div_layout.html.tpl', $v); })
+                                ->ifTrue(function ($v) { return !in_array('form_div_layout.html.smarty', $v); })
                                 ->then(function ($v) {
-                                    return array_merge(array('form_div_layout.html.tpl'), $v);
+                                    return array_merge(array('form_div_layout.html.smarty'), $v);
                                 })
                             ->end()
                             ->prototype('scalar')->end()
