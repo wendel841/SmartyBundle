@@ -60,9 +60,7 @@ class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRende
      */
     public function renderBlock(FormView $view, $resource, $blockName, array $variables = array())
     {
-        $cacheKey = $view->vars[self::CACHE_KEY_VAR];
-
-        // TODO: Move body of FormExtension::render() to here.
+        return $this->engine->fetchTemplateFunction($resource, $blockName, array_merge($view->vars, $variables));
     }
 
     /**
@@ -78,25 +76,41 @@ class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRende
      */
     protected function loadResourceForBlockName($cacheKey, FormView $view, $blockName)
     {
-        // The caller guarantees that $this->resources[$cacheKey][$block] is
-        // not set, but it doesn't have to check whether $this->resources[$cacheKey]
-        // is set. If $this->resources[$cacheKey] is set, all themes for this
-        // $cacheKey are already loaded (due to the eager population, see doc comment).
-        if (isset($this->resources[$cacheKey])) {
-            // As said in the previous, the caller guarantees that
-            // $this->resources[$cacheKey][$block] is not set. Since the themes are
-            // already loaded, it can only be a non-existing block.
-            $this->resources[$cacheKey][$blockName] = false;
-
-            return false;
+        // Check each theme whether it contains the searched block
+        if (isset($this->themes[$cacheKey])) {
+            for ($i = count($this->themes[$cacheKey]) - 1; $i >= 0; --$i) {
+                if ($template = $this->templateFunctionExists($this->themes[$cacheKey][$i], $blockName)) {
+                    $this->resources[$cacheKey][$blockName] = $template;
+                    break;
+                }
+            }
         }
 
-		// TODO: Check each theme whether it contains the searched block
-
         // Check the default themes once we reach the root view without success
-        if (!$view->parent) {
+        if (!isset($this->resources[$cacheKey][$blockName])) {
             for ($i = count($this->defaultThemes) - 1; $i >= 0; --$i) {
-			}
-		}
+                if ($template = $this->templateFunctionExists($this->defaultThemes[$i], $blockName)) {
+                    $this->resources[$cacheKey][$blockName] = $template;
+                    break;
+                }
+            }
+        }
+
+        return (isset($this->resources[$cacheKey][$blockName])) ? true : false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function templateFunctionExists($template, $name)
+    {
+        $tplPrefix = 'SmartyBundle:Form:';
+
+        if (!$template instanceof \Smarty_Internal_Template) {
+            $template = $tplPrefix.$template;
+            $template = $this->engine->createTemplate($template);
+        }
+
+        return (is_callable($function = 'smarty_template_function_'.$name)) ? $template: false;
     }
 }

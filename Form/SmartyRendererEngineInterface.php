@@ -36,4 +36,13 @@ use Symfony\Component\Form\FormRendererEngineInterface;
  */
 interface SmartyRendererEngineInterface extends FormRendererEngineInterface
 {
+    /**
+     * Checks whether the specified template function exists.
+     *
+     * @param Smarty_Internal_Template|string $template   A template object or resource path
+     * @param string                          $name       Function name
+     *
+     * @return bool|Smarty_Internal_Template  False if the template function is not defined, template otherwise.
+     */
+    public function templateFunctionExists($template, $name);
 }

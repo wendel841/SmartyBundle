@@ -221,7 +221,7 @@ class FormExtension extends AbstractExtension
     {
         list($view, $variables) = $this->extractFunctionParameters($params);
 
-		$blockName = 'label';
+		$blockName = 'form_label';
         $engine = $this->renderer->getEngine();
 
         $resource = $engine->getResourceForBlockName($view, $blockName);

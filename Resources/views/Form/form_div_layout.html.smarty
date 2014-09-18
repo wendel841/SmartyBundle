@@ -1,4 +1,38 @@
-{# Widgets #}
+{* Labels *}
+
+{function form_label}
+    {if $label}
+        {if !$compound}
+            {assign var=label_attr value=$label_attr|array_merge:['for' => $id]}
+        {/if}
+        {if required}
+            {if array_key_exists('class', $label_attr)}
+                {$label_attr.class=$label_attr.class|cat:' required'}
+            {else}
+                {assign var=label_attr value=$label_attr|array_merge:['class' => 'required']}
+            {/if}
+        {/if}
+
+        <label{foreach from=$label_attr key=attrname item=attrvalue} {$attrname}="{$attrvalue}"{/foreach}>{$label|trans}</label>
+    {/if}
+
+    {* if label is not sameas(false) -%}
+        {% if not compound -%}
+            {% set label_attr = label_attr|merge({'for': id}) %}
+        {%- endif %}
+        {% if required -%}
+            {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' required')|trim}) %}
+        {%- endif %}
+        {% if label is empty -%}
+            {% set label = name|humanize %}
+        {%- endif -%}
+        <label{% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>{{ label|trans({}, translation_domain) }}</label>
+    {%- endif *}
+{/function}
+
+{function button_label}{/function}
+
+{* Widgets #}
 
 {% block form_widget -%}
     {% if compound %}
@@ -192,25 +226,6 @@
     {{- block('button_widget') -}}
 {%- endblock reset_widget %}
 
-{# Labels #}
-
-{% block form_label -%}
-    {% if label is not sameas(false) -%}
-        {% if not compound -%}
-            {% set label_attr = label_attr|merge({'for': id}) %}
-        {%- endif %}
-        {% if required -%}
-            {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' required')|trim}) %}
-        {%- endif %}
-        {% if label is empty -%}
-            {% set label = name|humanize %}
-        {%- endif -%}
-        <label{% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>{{ label|trans({}, translation_domain) }}</label>
-    {%- endif %}
-{%- endblock form_label %}
-
-{% block button_label -%}{%- endblock %}
-
 {# Rows #}
 
 {% block repeated_row -%}
@@ -340,4 +355,4 @@
             {{- attrname }}="{{ attrvalue }}"
         {%- endif -%}
     {%- endfor -%}
-{%- endblock button_attributes %}
+{%- endblock button_attributes *}
