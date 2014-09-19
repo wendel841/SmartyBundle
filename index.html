@@ -4,80 +4,148 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>SmartyBundle by noiselabs</title>
-
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
     <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
   </head>
   <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/noiselabs/SmartyBundle">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/noiselabs/SmartyBundle/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/noiselabs/SmartyBundle/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
     <div class="wrapper">
-      <header>
-        <h1>SmartyBundle</h1>
-        <p>Smarty3 template engine bundle for Symfony2</p>
 
-        <p class="view"><a href="https://github.com/noiselabs/SmartyBundle">View the Project on GitHub <small>noiselabs/SmartyBundle</small></a></p>
-
-
-        <ul>
-          <li><a href="https://github.com/noiselabs/SmartyBundle/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/noiselabs/SmartyBundle/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/noiselabs/SmartyBundle">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
       <section>
-        <p>This <a href="http://symfony.com/">Symfony2</a> bundle provides integration for the <a href="http://www.smarty.net/">Smarty3</a> template engine.</p>
+        <div id="title">
+          <h1>SmartyBundle</h1>
+          <p>Smarty3 template engine bundle for Symfony2</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/noiselabs">noiselabs</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
 
-<h2>Requirements</h2>
+        <h1>
+<a name="smartybundle" class="anchor" href="#smartybundle"><span class="octicon octicon-link"></span></a>SmartyBundle</h1>
+
+<p>This <a href="http://symfony.com/">Symfony2</a> bundle provides integration for the <a href="http://www.smarty.net/">Smarty3</a> template engine.</p>
+
+<p><strong>Caution:</strong> This bundle is developed in sync with <a href="https://github.com/symfony/symfony">Symfony's repository</a>.
+For maximum compatibility with Symfony 2.0.x, you need to use releases 1.0.x of this bundle.</p>
+
+<h2>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h2>
 
 <ul>
-<li>PHP 5.3.2 and up.</li>
-<li><a href="http://www.smarty.net">Smarty 3</a></li>
-<li><a href="http://www.symfony.com">Symfony 2</a></li>
-</ul><h2>Documentation</h2>
+<li>
+<a href="http://php.net/" title="PHP: Hypertext Preprocessor">PHP</a> 5.3.3 and up.</li>
+<li><a href="http://www.smarty.net/" title="The compiling PHP template engine">Smarty 3</a></li>
+<li><a href="http://www.symfony.com/" title="High Performance PHP Framework for Web Development">Symfony 2</a></li>
+</ul><h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
 
-<p>The complete <a href="https://github.com/noiselabs/SmartyBundle/blob/master/Resources/doc/index.rst">documentation</a> is available in the <a href="https://github.com/noiselabs/SmartyBundle/blob/master/Resources/doc/index.rst"><code>Resources/doc/index.rst</code></a> file in this bundle.</p>
+<p>SmartyBundle is composer-friendly.</p>
 
-<h3>Extensions under development</h3>
+<h3>
+<a name="1-add-smartybundle-in-your-composerjson" class="anchor" href="#1-add-smartybundle-in-your-composerjson"><span class="octicon octicon-link"></span></a>1. Add SmartyBundle in your composer.json</h3>
+
+<div class="highlight highlight-js"><pre><span class="p">{</span>
+    <span class="s2">"require"</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">"noiselabs/smarty-bundle"</span><span class="o">:</span> <span class="s2">"dev-master"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>Now tell composer to download the bundle by running the command:</p>
+
+<div class="highlight highlight-bash"><pre><span class="nv">$ </span>php composer.phar update noiselabs/smarty-bundle
+</pre></div>
+
+<p>Composer will install the bundle to your project's <code>vendor/noiselabs</code> directory.</p>
+
+<h3>
+<a name="2-enable-the-bundle" class="anchor" href="#2-enable-the-bundle"><span class="octicon octicon-link"></span></a>2. Enable the bundle</h3>
+
+<p>Enable the bundle in the kernel:</p>
+
+<div class="highlight highlight-php"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+<span class="c1">// app/AppKernel.php</span>
+
+<span class="k">public</span> <span class="k">function</span> <span class="nf">registerBundles</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="nv">$bundles</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span>
+        <span class="c1">// ...</span>
+        <span class="k">new</span> <span class="nx">NoiseLabs\Bundle\SmartyBundle\SmartyBundle</span><span class="p">(),</span>
+    <span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<h3>
+<a name="3-enable-the-smarty-template-engine-in-the-config" class="anchor" href="#3-enable-the-smarty-template-engine-in-the-config"><span class="octicon octicon-link"></span></a>3. Enable the Smarty template engine in the config</h3>
+
+<div class="highlight highlight-yml"><pre>    <span class="c1"># app/config/config.yml</span>
+    <span class="l-Scalar-Plain">framework</span><span class="p-Indicator">:</span>
+        <span class="l-Scalar-Plain">templating</span><span class="p-Indicator">:</span>      <span class="p-Indicator">{</span> <span class="nv">engines</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="s">'twig'</span><span class="p-Indicator">,</span> <span class="s">'smarty'</span><span class="p-Indicator">]</span> <span class="p-Indicator">}</span>
+</pre></div>
+
+<p>For other installation methods (Symfony-2.0 vendors script or git submodules) please refer to the documentation below.</p>
+
+<h2>
+<a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h2>
+
+<p>Complete documentation is available on <a href="https://smartybundle.readthedocs.org/" title="SmartyBundle Documentation">Read the Docs</a>.</p>
+
+<h3>
+<a name="extensions-under-development" class="anchor" href="#extensions-under-development"><span class="octicon octicon-link"></span></a>Extensions under development</h3>
 
 <p>If you want to contribute to SmartyBundle please switch to the following branches when contributing to one of these extensions.</p>
 
 <ul>
 <li>
-<strong>AsseticExtension</strong> - <a href="https://github.com/noiselabs/SmartyBundle/tree/assetic-extension">https://github.com/noiselabs/SmartyBundle/tree/assetic-extension</a>
+<strong>Assetic</strong> - <a href="https://github.com/noiselabs/SmartyBundle/tree/assetic-extension">assetic-extension</a>
 </li>
 <li>
-<strong>FormExtension</strong> - <a href="https://github.com/noiselabs/SmartyBundle/tree/form-extension">https://github.com/noiselabs/SmartyBundle/tree/form-extension</a>
+<strong>Twitter Bootstrap</strong> - <a href="https://github.com/noiselabs/SmartyBundle/tree/twitter-bootstrap">twitter-bootstrap</a>
 </li>
 <li>
-<strong>SecurityExtension</strong> - <em>completed, merged into master</em>
+<strong>Forms</strong> - <a href="https://github.com/noiselabs/SmartyBundle/tree/form-extension">form-extension</a>
 </li>
-</ul><h2>Installation</h2>
-
-<p>Follow the instructions described in the <a href="https://github.com/noiselabs/SmartyBundle/blob/master/Resources/doc/index.rst">documentation</a>.</p>
-
-<h2>License</h2>
+<li>
+<strong>Security</strong> - <em>completed, merged into master</em>
+</li>
+</ul><h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
 
 <p>This bundle is licensed under the LGPLv3 License. See the <a href="https://github.com/noiselabs/SmartyBundle/blob/master/Resources/meta/LICENSE">LICENSE file</a> for details.</p>
 
-<h2>Authors</h2>
+<h2>
+<a name="authors" class="anchor" href="#authors"><span class="octicon octicon-link"></span></a>Authors</h2>
 
-<p>Vítor Brandão - <a href="mailto:noisebleed@noiselabs.org">noisebleed@noiselabs.org</a> ~ <a href="http://twitter.com/noiselabs">twitter.com/noiselabs</a> ~ <a href="http://blog.noiselabs.org">blog.noiselabs.org</a></p>
+<p>Vítor Brandão - <a href="mailto:vitor@noiselabs.org">vitor@noiselabs.org</a> ~ <a href="http://twitter.com/noiselabs">twitter.com/noiselabs</a> ~ <a href="http://blog.noiselabs.org">blog.noiselabs.org</a></p>
 
 <p>See also the list of <a href="https://github.com/noiselabs/SmartyBundle/contributors">contributors</a> who participated in this project.</p>
 
-<h2>Submitting bugs and feature requests</h2>
+<h2>
+<a name="submitting-bugs-and-feature-requests" class="anchor" href="#submitting-bugs-and-feature-requests"><span class="octicon octicon-link"></span></a>Submitting bugs and feature requests</h2>
 
 <p>Bugs and feature requests are tracked on <a href="https://github.com/noiselabs/SmartyBundle/issues">GitHub</a>.</p>
       </section>
-      <footer>
-        <p>This project is maintained by <a href="https://github.com/noiselabs">noiselabs</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
-      </footer>
+
     </div>
-    <script src="javascripts/scale.fix.js"></script>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
               <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
