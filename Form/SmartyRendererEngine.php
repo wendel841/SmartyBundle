@@ -76,6 +76,7 @@ class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRende
      */
     protected function loadResourceForBlockName($cacheKey, FormView $view, $blockName)
     {
+        $this->resources[$cacheKey][$blockName] = false;
         // Check each theme whether it contains the searched block
         if (isset($this->themes[$cacheKey])) {
             for ($i = count($this->themes[$cacheKey]) - 1; $i >= 0; --$i) {
@@ -87,7 +88,7 @@ class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRende
         }
 
         // Check the default themes once we reach the root view without success
-        if (!isset($this->resources[$cacheKey][$blockName])) {
+        if (!$this->resources[$cacheKey][$blockName]) {
             for ($i = count($this->defaultThemes) - 1; $i >= 0; --$i) {
                 if ($template = $this->templateFunctionExists($this->defaultThemes[$i], $blockName)) {
                     $this->resources[$cacheKey][$blockName] = $template;
@@ -96,7 +97,7 @@ class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRende
             }
         }
 
-        return (isset($this->resources[$cacheKey][$blockName])) ? true : false;
+        return $this->resources[$cacheKey][$blockName];
     }
 
     /**

@@ -166,7 +166,12 @@ class FormExtension extends AbstractExtension
     {
         list($view, $variables) = $this->extractFunctionParameters($params);
 
-        return $this->render($view, $template, 'rest', $variables);
+        $blockName = 'form_row';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+        return $engine->renderBlock($view, $resource, $blockName, array());
     }
 
     /**
@@ -191,7 +196,12 @@ class FormExtension extends AbstractExtension
     {
         list($view, $variables) = $this->extractFunctionParameters($params);
 
-        return $this->render($view, $template, 'widget', $variables);
+        $blockName = 'form_widget';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+        return $engine->renderBlock($view, $resource, $blockName, array());
     }
 
     /**
@@ -206,7 +216,12 @@ class FormExtension extends AbstractExtension
     {
         list($view) = $this->extractFunctionParameters($params);
 
-        return $this->render($view, $template, 'errors');
+        $blockName = 'form_errors';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+        return $engine->renderBlock($view, $resource, $blockName, array());
     }
 
     /**

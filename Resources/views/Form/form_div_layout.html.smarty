@@ -15,39 +15,77 @@
 
         <label{foreach from=$label_attr key=attrname item=attrvalue} {$attrname}="{$attrvalue}"{/foreach}>{$label|trans}</label>
     {/if}
-
-    {* if label is not sameas(false) -%}
-        {% if not compound -%}
-            {% set label_attr = label_attr|merge({'for': id}) %}
-        {%- endif %}
-        {% if required -%}
-            {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' required')|trim}) %}
-        {%- endif %}
-        {% if label is empty -%}
-            {% set label = name|humanize %}
-        {%- endif -%}
-        <label{% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>{{ label|trans({}, translation_domain) }}</label>
-    {%- endif *}
 {/function}
 
 {function button_label}{/function}
 
-{* Widgets #}
+{* Misc *}
 
-{% block form_widget -%}
-    {% if compound %}
-        {{- block('form_widget_compound') -}}
-    {% else %}
-        {{- block('form_widget_simple') -}}
-    {% endif %}
-{%- endblock form_widget %}
+{function form_errors}
+    {if $errors->count()}
+    <ul>
+        {$errors->rewind()} {* Set the iterator's position to the beginning *}
 
-{% block form_widget_simple -%}
-    {% set type = type|default('text') -%}
-    <input type="{{ type }}" {{ block('widget_attributes') }} {% if value is not empty %}value="{{ value }}" {% endif %}/>
-{%- endblock form_widget_simple %}
+        {while $error=$errors->current()}
+            <li>{$error->getMessage()}</li>
+            {$errors->next()}
+        {/while}
+    </ul>
+    {/if}
+{/function}
 
-{% block form_widget_compound -%}
+{* Support *}
+
+{function widget_attributes}
+{strip}
+    id="{$argv.id}" name="{$argv.name}"
+    {if $argv.read_only} readonly="readonly"{/if}
+    {if $argv.disabled} disabled="disabled"{/if}
+    {if $argv.required} required="required"{/if}
+    {foreach from=$argv.attr key=attrname item=attrvalue}
+        {if $attrname == placeholder || $attrname == title}
+            {$attrname}="{$attrvalue|trans}"
+        {elseif $attrvalue == true}
+            {$attrname}="{$attrname}"
+        {elseif $attrvalue != false}
+            {$attrname}="{$attrvalue}"
+        {/if}
+    {/foreach}
+{/strip}
+{/function}
+
+{* Widgets *}
+
+{function form_widget}
+    {* There is a list of possible block names for the widgets. It make possible to customize the output.
+     * E.g. <textarea> can't be rendered the same as text (<input type="text"), therefore we have to search
+     * for textarea_widget first. After testing all possibilities (there are more of them, for example
+     * _form_{field_name}_widget allows to customize a single field), form_widget will be called. *}
+    {assign var=block_prefixes value=$block_prefixes|array_reverse}
+    {foreach from=$block_prefixes item=block_prefix}
+        {assign var=block_name value=$block_prefix|cat:'_':widget}
+        {assign var=template_func value=smarty_template_function_|cat:$block_name}
+
+        {* form_widget shouldn't call itself, it would start an endless recursion *}
+        {if $block_prefix == 'form' && $compound}
+            {*- block('form_widget_compound')*}
+            {break}
+        {elseif $block_prefix == 'form' && !$compound}
+            {call form_widget_simple argv=$form->vars}
+            {break}
+        {elseif $template_func|function_exists} 
+            {call $block_name argv=$form->vars}
+            {break}
+        {/if}
+    {/foreach}
+{/function}
+
+{function form_widget_simple}
+    {assign var=type value=$type|default:'text'}
+    <input type="{$type}" {call widget_attributes argv=$argv}{if $argv.value != ''} value="{$argv.value}"{/if}>
+{/function}
+
+{* block form_widget_compound -%}
     <div {{ block('widget_container_attributes') }}>
         {%- if form.parent is empty -%}
             {{ form_errors(form) }}
@@ -55,18 +93,28 @@
         {{- block('form_rows') -}}
         {{- form_rest(form) -}}
     </div>
-{%- endblock form_widget_compound %}
+{%- endblock form_widget_compound *}
 
-{% block collection_widget -%}
+{function textarea_widget}
+    <textarea {call widget_attributes argv=$argv}>{$value}</textarea>
+{/function}
+
+{* Rows *}
+
+{function form_row}
+    <div>
+        {call form_label form=$form}
+        {call form_errors form=$form}
+        {call form_widget form=$form}
+    </div>
+{/function}
+
+{* block collection_widget -%}
     {% if prototype is defined %}
         {%- set attr = attr|merge({'data-prototype': form_row(prototype) }) -%}
     {% endif %}
     {{- block('form_widget') -}}
 {%- endblock collection_widget %}
-
-{% block textarea_widget -%}
-    <textarea {{ block('widget_attributes') }}>{{ value }}</textarea>
-{%- endblock textarea_widget %}
 
 {% block choice_widget -%}
     {% if expanded %}
@@ -236,14 +284,6 @@
     {{- block('form_rows') -}}
 {%- endblock repeated_row %}
 
-{% block form_row -%}
-    <div>
-        {{- form_label(form) -}}
-        {{- form_errors(form) -}}
-        {{- form_widget(form) -}}
-    </div>
-{%- endblock form_row %}
-
 {% block button_row -%}
     <div>
         {{- form_widget(form) -}}
@@ -286,16 +326,6 @@
     {% if multipart %}enctype="multipart/form-data"{% endif %}
 {%- endblock form_enctype %}
 
-{% block form_errors -%}
-    {% if errors|length > 0 -%}
-    <ul>
-        {%- for error in errors -%}
-            <li>{{ error.message }}</li>
-        {%- endfor -%}
-    </ul>
-    {%- endif %}
-{%- endblock form_errors %}
-
 {% block form_rest -%}
     {% for child in form -%}
         {% if not child.rendered %}
@@ -311,23 +341,6 @@
         {{- form_row(child) -}}
     {% endfor %}
 {%- endblock form_rows %}
-
-{% block widget_attributes -%}
-    id="{{ id }}" name="{{ full_name }}"
-    {%- if read_only %} readonly="readonly"{% endif -%}
-    {%- if disabled %} disabled="disabled"{% endif -%}
-    {%- if required %} required="required"{% endif -%}
-    {%- for attrname, attrvalue in attr -%}
-        {{- " " -}}
-        {%- if attrname in ['placeholder', 'title'] -%}
-            {{- attrname }}="{{ attrvalue|trans({}, translation_domain) }}"
-        {%- elseif attrvalue is sameas(true) -%}
-            {{- attrname }}="{{ attrname }}"
-        {%- elseif attrvalue is not sameas(false) -%}
-            {{- attrname }}="{{ attrvalue }}"
-        {%- endif -%}
-    {%- endfor -%}
-{%- endblock widget_attributes %}
 
 {% block widget_container_attributes -%}
     {%- if id is not empty %}id="{{ id }}"{% endif -%}
