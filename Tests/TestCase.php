@@ -28,16 +28,13 @@
 namespace NoiseLabs\Bundle\SmartyBundle\Tests;
 
 use NoiseLabs\Bundle\SmartyBundle\SmartyEngine;
+use NoiseLabs\Bundle\SmartyBundle\Tests\Extension\Fixtures\ProjectTemplateLoader;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Templating\Loader\Loader;
-use Symfony\Component\Templating\Storage\StringStorage;
 use Symfony\Component\Templating\TemplateNameParser;
-use Symfony\Component\Templating\TemplateReferenceInterface;
-use Symfony\Component\Templating\TemplateReference;
 
 /**
  * @author Vítor Brandão <vitor@noiselabs.org>
@@ -176,35 +173,5 @@ class ProjectTemplateEngine extends SmartyEngine
     public function getLoader()
     {
         return $this->loader;
-    }
-}
-
-/**
- * @author Vítor Brandão <vitor@noiselabs.org>
- */
-class ProjectTemplateLoader extends Loader
-{
-    public $templates = array();
-
-    public function setTemplate($name, $content)
-    {
-        $template = new TemplateReference($name, 'smarty');
-        $this->templates[$template->getLogicalName()] = $content;
-    }
-
-    public function load(TemplateReferenceInterface $template)
-    {
-        if (isset($this->templates[$template->getLogicalName()])) {
-            $storage = new StringStorage($this->templates[$template->getLogicalName()]);
-
-            return 'string:'.$storage->getContent();
-        }
-
-        return false;
-    }
-
-    public function isFresh(TemplateReferenceInterface $template, $time)
-    {
-        return false;
     }
 }

@@ -30,13 +30,10 @@ use NoiseLabs\Bundle\SmartyBundle\SmartyEngine;
 use NoiseLabs\Bundle\SmartyBundle\Form\SmartyRenderer;
 use NoiseLabs\Bundle\SmartyBundle\Form\SmartyRendererEngine;
 use NoiseLabs\Bundle\SmartyBundle\Extension\FormExtension;
+use NoiseLabs\Bundle\SmartyBundle\Tests\Extension\Fixtures\ProjectTemplateLoader;
+use NoiseLabs\Bundle\SmartyBundle\Tests\Extension\Fixtures\ProjectTranslator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
-use Symfony\Component\Config\Loader\LoaderInterface;
-use Symfony\Component\Templating\Loader\Loader;
-use Symfony\Component\Templating\Storage\StringStorage;
-use Symfony\Component\Templating\TemplateReferenceInterface;
-use Symfony\Component\Templating\TemplateReference;
 use Symfony\Component\Templating\TemplateNameParser;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\Form\Tests\AbstractDivLayoutTest;
@@ -44,7 +41,7 @@ use Symfony\Component\Form\Tests\AbstractDivLayoutTest;
 class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
 {
     private $loader;
-    private $smarty;
+    private $renderer;
     private $engine;
     protected $extension;
 
@@ -53,7 +50,9 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
         parent::setUp();
 
         // Get Smarty
-        $this->smarty = new \Smarty();
+        $smarty = new \Smarty();
+        $smarty->registerPlugin('modifier', 'trans', array(new ProjectTranslator, 'trans'));
+
         $this->loader = new ProjectTemplateLoader();
 
         // Get Smarty engine
@@ -72,7 +71,7 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
             'compile_dir'   => sys_get_temp_dir().'/noiselabs-smarty-bundle-test/templates_c',
         );
         $this->engine = new SmartyEngine(
-            $this->smarty,
+            $smarty,
             $container,
             new TemplateNameParser(),
             $this->loader,
@@ -85,12 +84,12 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
         $rendererEngine = new SmartyRendererEngine($this->engine, array(
             'form_div_layout.html.smarty',
         ));
-        $renderer = new SmartyRenderer(
+        $this->renderer = new SmartyRenderer(
             $rendererEngine,
             $this->getMock('Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderInterface')
         );
 
-        $this->extension = new FormExtension($renderer);
+        $this->extension = new FormExtension($this->renderer);
     }
 
     protected function renderForm(FormView $view, array $vars = array())
@@ -105,7 +104,14 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
 
     protected function renderLabel(FormView $view, $label = null, array $vars = array())
     {
-        return '';
+		$blockName = 'form_label';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+        $vars += array('label' => $label);
+
+		return $engine->renderBlock($view, $resource, $blockName, $vars);
     }
 
     protected function renderErrors(FormView $view)
@@ -140,32 +146,5 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
 
     protected function setTheme(FormView $view, array $themes)
     {
-    }
-}
-
-class ProjectTemplateLoader extends Loader
-{
-    public $templates = array();
-
-    public function setTemplate($name, $content)
-    {
-        $template = new TemplateReference($name, 'smarty');
-        $this->templates[$template->getLogicalName()] = $content;
-    }
-
-    public function load(TemplateReferenceInterface $template)
-    {
-        if (isset($this->templates[$template->getLogicalName()])) {
-            $storage = new StringStorage($this->templates[$template->getLogicalName()]);
-
-            return 'string:'.$storage->getContent();
-        }
-
-        return false;
-    }
-
-    public function isFresh(TemplateReferenceInterface $template, $time)
-    {
-        return false;
     }
 }
