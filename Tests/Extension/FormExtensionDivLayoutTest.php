@@ -116,7 +116,12 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
 
     protected function renderErrors(FormView $view)
     {
-        return '';
+		$blockName = 'form_errors';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+		return $engine->renderBlock($view, $resource, $blockName, array());
     }
 
     protected function renderWidget(FormView $view, array $vars = array())
@@ -126,7 +131,12 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
 
     protected function renderRow(FormView $view, array $vars = array())
     {
-        return '';
+		$blockName = 'form_row';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+		return $engine->renderBlock($view, $resource, $blockName, $vars);
     }
 
     protected function renderRest(FormView $view, array $vars = array())

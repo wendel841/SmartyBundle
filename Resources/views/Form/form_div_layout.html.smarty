@@ -1,8 +1,11 @@
 {* Labels *}
 
 {function form_label}
-    {if $label}
-        {if !$compound}
+    {if $label !== false}
+        {if !isset($label_attr)} {* Avoid not defined index error *}
+            {$label_attr = []}
+        {/if}
+        {if isset($compound) and !$compound}
             {assign var=label_attr value=$label_attr|array_merge:['for' => $id]}
         {/if}
         {if required}
@@ -13,7 +16,7 @@
             {/if}
         {/if}
 
-        <label{foreach from=$label_attr key=attrname item=attrvalue} {$attrname}="{$attrvalue}"{/foreach}>{$label|trans}</label>
+        <label{foreach from=$label_attr key=attrname item=attrvalue} {$attrname}="{$attrvalue|replace:'&':'&amp;'}"{/foreach}>{$label|replace:'&':'&amp;'|trans}</label>
     {/if}
 {/function}
 
@@ -22,7 +25,7 @@
 {* Misc *}
 
 {function form_errors}
-    {if $errors->count()}
+    {if isset($errors) and $errors->count()}
     <ul>
         {$errors->rewind()} {* Set the iterator's position to the beginning *}
 
@@ -42,12 +45,12 @@
     {if $argv.read_only} readonly="readonly"{/if}
     {if $argv.disabled} disabled="disabled"{/if}
     {if $argv.required} required="required"{/if}
-    {foreach from=$argv.attr key=attrname item=attrvalue}
-        {if $attrname == placeholder || $attrname == title}
+    {foreach from=$attr key=attrname item=attrvalue}
+        {if $attrname == placeholder || $attrname == title}{' '}
             {$attrname}="{$attrvalue|trans}"
-        {elseif $attrvalue == true}
-            {$attrname}="{$attrname}"
-        {elseif $attrvalue != false}
+        {elseif $attrvalue == true}{' '}
+            {$attrname}="{$attrvalue|replace:'&':'&amp;'}"
+        {elseif $attrvalue != false}{' '}
             {$attrname}="{$attrvalue}"
         {/if}
     {/foreach}
@@ -82,7 +85,7 @@
 
 {function form_widget_simple}
     {assign var=type value=$type|default:'text'}
-    <input type="{$type}" {call widget_attributes argv=$argv}{if $argv.value != ''} value="{$argv.value}"{/if}>
+    <input type="{$type}" {call widget_attributes argv=$argv attr=$attr}{if $argv.value != ''} value="{$argv.value}"{/if} />
 {/function}
 
 {* block form_widget_compound -%}
