@@ -39,6 +39,12 @@
 {/strip}
 {/function}
 
+{function form_enctype}
+{strip}
+    {if $multipart}enctype="multipart/form-data"{/if}
+{/strip}
+{/function}
+
 {function form_errors}
     {if isset($errors) and $errors->count()}
     <ul>
@@ -326,10 +332,6 @@
     {% endif -%}
     </form>
 {%- endblock form_end %}
-
-{% block form_enctype -%}
-    {% if multipart %}enctype="multipart/form-data"{% endif %}
-{%- endblock form_enctype %}
 
 {% block form_rest -%}
     {% for child in form -%}

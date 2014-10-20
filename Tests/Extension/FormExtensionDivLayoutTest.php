@@ -99,7 +99,7 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
 
     protected function renderEnctype(FormView $view)
     {
-        return '';
+        return $this->renderer->searchAndRenderBlock($view, 'enctype');
     }
 
     protected function renderLabel(FormView $view, $label = null, array $vars = array())
