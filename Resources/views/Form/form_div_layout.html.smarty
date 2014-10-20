@@ -24,6 +24,21 @@
 
 {* Misc *}
 
+{function form_start}
+{strip}
+    {assign var=method value=$method|upper}
+    {if $method eq "GET" or $method eq "POST"}
+        {assign var=form_method value=$method}
+    {else}
+        {assign var=form_method value="POST"}
+    {/if}
+    <form name="{$form->vars.name}" method="{$form_method|lower}" action="{$action}"{foreach from=$attr key=attrname item=attrvalue} {$attrname}="{$attrvalue}"{/foreach}{if $multipart} enctype="multipart/form-data"{/if}>
+    {if $form_method neq $method}
+        <input type="hidden" name="_method" value="{$method}" />
+    {/if}
+{/strip}
+{/function}
+
 {function form_errors}
     {if isset($errors) and $errors->count()}
     <ul>
@@ -304,19 +319,6 @@
         {{- form_widget(form) -}}
     {{ form_end(form) }}
 {%- endblock form %}
-
-{% block form_start -%}
-    {% set method = method|upper %}
-    {%- if method in ["GET", "POST"] -%}
-        {% set form_method = method %}
-    {%- else -%}
-        {% set form_method = "POST" %}
-    {%- endif -%}
-    <form name="{{ form.vars.name }}" method="{{ form_method|lower }}" action="{{ action }}"{% for attrname, attrvalue in attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}{% if multipart %} enctype="multipart/form-data"{% endif %}>
-    {%- if form_method != method -%}
-        <input type="hidden" name="_method" value="{{ method }}" />
-    {%- endif -%}
-{%- endblock form_start %}
 
 {% block form_end -%}
     {% if not render_rest is defined or render_rest %}

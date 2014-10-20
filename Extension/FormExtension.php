@@ -83,7 +83,7 @@ class FormExtension extends AbstractExtension
             new FunctionPlugin('form_row', $this, 'renderRow'),
             new FunctionPlugin('form_rest', $this, 'renderRest'),
             //'form'         => new \Twig_Function_Node('Symfony\Bridge\Twig\Node\RenderBlockNode', array('is_safe' => array('html'))),
-            //'form_start'   => new \Twig_Function_Node('Symfony\Bridge\Twig\Node\RenderBlockNode', array('is_safe' => array('html'))),
+            new FunctionPlugin('form_start', $this, 'renderStart'),
             //'form_end'     => new \Twig_Function_Node('Symfony\Bridge\Twig\Node\RenderBlockNode', array('is_safe' => array('html'))),
             new ModifierPlugin('form_is_selectedchoice', $this, 'isSelectedChoice'),
             new ModifierPlugin('form_csrf_token', $this, array($this->renderer, 'renderCsrfToken')),
@@ -152,6 +152,26 @@ class FormExtension extends AbstractExtension
         list($view, $variables) = $this->extractFunctionParameters($params);
 
         return $this->render($view, $template, 'row', $variables);
+    }
+
+    /**
+     * Renders the start of the form.
+     *
+     * @param array  $params   Attributes passed from the template.
+     * @param object $template The \Smarty_Internal_Template instance.
+     *
+     * @return string The html markup
+     */
+    public function renderStart($params, \Smarty_Internal_Template $template)
+    {
+        list($view, $variables) = $this->extractFunctionParameters($params);
+
+        $blockName = 'form_start';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+        return $engine->renderBlock($view, $resource, $blockName, $variables);
     }
 
     /**
