@@ -221,7 +221,7 @@ class FormExtension extends AbstractExtension
 
         $resource = $engine->getResourceForBlockName($view, $blockName);
 
-        return $engine->renderBlock($view, $resource, $blockName, array());
+        return $engine->renderBlock($view, $resource, $blockName, $variables);
     }
 
     /**

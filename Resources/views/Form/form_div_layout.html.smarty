@@ -62,10 +62,12 @@
 
 {function widget_attributes}
 {strip}
-    id="{$argv.id}" name="{$argv.name}"
+    id="{$id|replace:'&':'&amp;'}" name="{$argv.name}"
     {if $argv.read_only} readonly="readonly"{/if}
     {if $argv.disabled} disabled="disabled"{/if}
     {if $argv.required} required="required"{/if}
+
+    {assign var=attr value=$attr|array_merge:$argv.attr}
     {foreach from=$attr key=attrname item=attrvalue}
         {if $attrname == placeholder || $attrname == title}{' '}
             {$attrname}="{$attrvalue|trans}"
@@ -106,7 +108,7 @@
 
 {function form_widget_simple}
     {assign var=type value=$type|default:'text'}
-    <input type="{$type}" {call widget_attributes argv=$argv attr=$attr}{if $argv.value != ''} value="{$argv.value}"{/if} />
+    <input type="{$type}" {call widget_attributes}{if $value != ''} value="{$value|replace:'&':'&amp;'}"{/if} />
 {/function}
 
 {* block form_widget_compound -%}
@@ -120,7 +122,7 @@
 {%- endblock form_widget_compound *}
 
 {function textarea_widget}
-    <textarea {call widget_attributes argv=$argv}>{$value}</textarea>
+    <textarea {call widget_attributes argv=$argv}>{$value|replace:'&':'&amp;'}</textarea>
 {/function}
 
 {* Rows *}
@@ -133,20 +135,20 @@
     </div>
 {/function}
 
+{function choice_widget}
+    {* if expanded %}
+        {{- block('choice_widget_expanded') -}}
+    {% else %}
+        {{- block('choice_widget_collapsed') -}}
+    {% endif *}
+{/function}
+
 {* block collection_widget -%}
     {% if prototype is defined %}
         {%- set attr = attr|merge({'data-prototype': form_row(prototype) }) -%}
     {% endif %}
     {{- block('form_widget') -}}
 {%- endblock collection_widget %}
-
-{% block choice_widget -%}
-    {% if expanded %}
-        {{- block('choice_widget_expanded') -}}
-    {% else %}
-        {{- block('choice_widget_collapsed') -}}
-    {% endif %}
-{%- endblock choice_widget %}
 
 {% block choice_widget_expanded -%}
     <div {{ block('widget_container_attributes') }}>
