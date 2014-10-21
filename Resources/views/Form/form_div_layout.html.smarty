@@ -1,6 +1,7 @@
 {* Labels *}
 
 {function form_label}
+    {if $label === null}{assign var=label value=$form->vars.label}{/if}
     {if $label !== false}
         {if !isset($label_attr)} {* Avoid not defined index error *}
             {$label_attr = []}
@@ -15,7 +16,9 @@
                 {assign var=label_attr value=$label_attr|array_merge:['class' => 'required']}
             {/if}
         {/if}
-
+        {if $label == ''}
+            {assign var=label value=$name|humanize}
+        {/if}
         <label{foreach from=$label_attr key=attrname item=attrvalue} {$attrname}="{$attrvalue|replace:'&':'&amp;'}"{/foreach}>{$label|replace:'&':'&amp;'|trans}</label>
     {/if}
 {/function}
@@ -129,9 +132,9 @@
 
 {function form_row}
     <div>
-        {call form_label form=$form}
-        {call form_errors form=$form}
-        {call form_widget form=$form}
+        {call form_label}
+        {call form_errors}
+        {call form_widget}
     </div>
 {/function}
 

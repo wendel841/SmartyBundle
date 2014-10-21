@@ -51,7 +51,6 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
 
         // Get Smarty
         $smarty = new \Smarty();
-        $smarty->registerPlugin('modifier', 'trans', array(new ProjectTranslator, 'trans'));
 
         $this->loader = new ProjectTemplateLoader();
 
@@ -90,6 +89,10 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
         );
 
         $this->extension = new FormExtension($this->renderer);
+
+        /* Register modifiers */
+        $smarty->registerPlugin('modifier', 'trans', array(new ProjectTranslator, 'trans'));
+        $smarty->registerPlugin('modifier', 'humanize', array($this->extension, 'humanize'));
     }
 
     protected function renderForm(FormView $view, array $vars = array())

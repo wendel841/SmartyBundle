@@ -87,7 +87,7 @@ class FormExtension extends AbstractExtension
             //'form_end'     => new \Twig_Function_Node('Symfony\Bridge\Twig\Node\RenderBlockNode', array('is_safe' => array('html'))),
             new ModifierPlugin('form_is_selectedchoice', $this, 'isSelectedChoice'),
             new ModifierPlugin('form_csrf_token', $this, array($this->renderer, 'renderCsrfToken')),
-            new ModifierPlugin('form_humanize', $this, array($this->renderer, 'humanize')),
+            new ModifierPlugin('humanize', $this, 'humanize'),
         );
     }
 
@@ -137,6 +137,18 @@ class FormExtension extends AbstractExtension
         }
 
         return $choice->value === $selectedValue;
+    }
+
+    /**
+     * Makes a technical name human readable.
+     *
+     * @param string $text The text to humanize.
+     *
+     * @return string The humanized text.
+     */
+    public function humanize($text)
+    {
+        return ucfirst(preg_replace(array('/_/'), array(' '), $text));
     }
 
     /**
