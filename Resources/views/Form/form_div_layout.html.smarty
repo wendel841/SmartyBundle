@@ -6,8 +6,8 @@
         {if !isset($label_attr)} {* Avoid not defined index error *}
             {$label_attr = []}
         {/if}
-        {if isset($compound) and !$compound}
-            {assign var=label_attr value=$label_attr|array_merge:['for' => $id]}
+        {if isset($form->vars.compound) and !$form->vars.compound}
+            {assign var=label_attr value=$label_attr|array_merge:['for' => $form->vars.id]}
         {/if}
         {if required}
             {if array_key_exists('class', $label_attr)}
@@ -17,7 +17,7 @@
             {/if}
         {/if}
         {if $label == ''}
-            {assign var=label value=$name|humanize}
+            {assign var=label value=$form->vars.name|humanize}
         {/if}
         <label{foreach from=$label_attr key=attrname item=attrvalue} {$attrname}="{$attrvalue|replace:'&':'&amp;'}"{/foreach}>{$label|replace:'&':'&amp;'|trans}</label>
     {/if}
@@ -45,13 +45,13 @@
 {/strip}{/function}
 
 {function form_errors}
-    {if isset($errors) and $errors->count()}
+    {if isset($form->vars.errors) and $form->vars.errors->count()}
     <ul>
-        {$errors->rewind()} {* Set the iterator's position to the beginning *}
+        {$form->vars.errors->rewind()} {* Set the iterator's position to the beginning *}
 
-        {while $error=$errors->current()}
+        {while $error=$form->vars.errors->current()}
             <li>{$error->getMessage()}</li>
-            {$errors->next()}
+            {$form->vars.errors->next()}
         {/while}
     </ul>
     {/if}
@@ -68,7 +68,7 @@
 {* Support *}
 
 {function form_rows}
-    {foreach from=$form item=child}
+    {foreach from=$form->children item=child}
         {call form_row form=$child}
     {/foreach}
 {/function}
@@ -93,7 +93,7 @@
     {if $disabled} disabled="disabled"{/if}
     {if $required} required="required"{/if}
 
-    {assign var=attr value=$attr|array_merge:$argv.attr}
+    {assign var=attr value=$attr|array_merge:$form->vars.attr}
     {foreach from=$attr key=attrname item=attrvalue}
         {' '}
         {if $attrname == placeholder || $attrname == title}
@@ -120,6 +120,19 @@
     {/foreach}
 {/strip}{/function}
 
+{* block form -%}
+    {{ form_start(form) }}
+        {{- form_widget(form) -}}
+    {{ form_end(form) }}
+{%- endblock form %}
+
+{% block form_end -%}
+    {% if not render_rest is defined or render_rest %}
+        {{- form_rest(form) -}}
+    {% endif -%}
+    </form>
+{%- endblock form_end *}
+
 {* Widgets *}
 
 {function form_widget}{strip}
@@ -127,28 +140,27 @@
      * E.g. <textarea> can't be rendered the same as text (<input type="text"), therefore we have to search
      * for textarea_widget first. After testing all possibilities (there are more of them, for example
      * _form_{field_name}_widget allows to customize a single field), form_widget will be called. *}
-    {assign var=block_prefixes value=$block_prefixes|array_reverse}
-    {foreach from=$block_prefixes item=block_prefix}
+    {foreach from=$form->vars.block_prefixes|array_reverse item=block_prefix}
         {assign var=block_name value=$block_prefix|cat:'_':widget}
         {assign var=template_func value=smarty_template_function_|cat:$block_name}
 
         {* form_widget shouldn't call itself, it would start an endless recursion *}
-        {if $block_prefix == 'form' && $compound}
+        {if $block_prefix == 'form' && $form->vars.compound}
             {*- block('form_widget_compound')*}
             {break}
-        {elseif $block_prefix == 'form' && !$compound}
-            {call form_widget_simple argv=$form->vars}
+        {elseif $block_prefix == 'form'}
+            {call form_widget_simple}
             {break}
         {elseif $template_func|function_exists} 
-            {call $block_name argv=$form->vars}
+            {call $block_name}
             {break}
         {/if}
     {/foreach}
 {/strip}{/function}
 
-{function form_widget_simple}
+{function form_widget_simple}{strip}
     <input type="{$type|default:'text'}" {call widget_attributes}{if $value != ''} value="{$value|replace:'&':'&amp;'}"{/if} />
-{/function}
+{/strip}{/function}
 
 {* block form_widget_compound -%}
     <div {{ block('widget_container_attributes') }}>
@@ -324,11 +336,33 @@
 {* Rows *}
 
 {function form_row}
+    {* See form_widget comments *}
+    {foreach from=$form->vars.block_prefixes|array_reverse item=block_prefix}
+        {assign var=block_name value=$block_prefix|cat:'_':row}
+        {assign var=template_func value=smarty_template_function_|cat:$block_name}
+
+        {if $block_prefix == 'form'}
+            <div>
+                {call form_label}
+                {call form_errors}
+                {call form_widget}
+            </div>
+            {break}
+        {elseif $template_func|function_exists} 
+            {call $block_name}
+            {break}
+        {/if}
+    {/foreach}
+{/function}
+
+{function button_row}
     <div>
-        {call form_label}
-        {call form_errors}
         {call form_widget}
     </div>
+{/function}
+
+{function hidden_row}
+    {call form_widget}
 {/function}
 
 {* block repeated_row -%}
@@ -337,29 +371,4 @@
     to the first child (see RepeatedTypeValidatorExtension).
     #}
     {{- block('form_rows') -}}
-{%- endblock repeated_row %}
-
-{% block button_row -%}
-    <div>
-        {{- form_widget(form) -}}
-    </div>
-{%- endblock button_row %}
-
-{% block hidden_row -%}
-    {{ form_widget(form) }}
-{%- endblock hidden_row %}
-
-{# Misc #}
-
-{% block form -%}
-    {{ form_start(form) }}
-        {{- form_widget(form) -}}
-    {{ form_end(form) }}
-{%- endblock form %}
-
-{% block form_end -%}
-    {% if not render_rest is defined or render_rest %}
-        {{- form_rest(form) -}}
-    {% endif -%}
-    </form>
-{%- endblock form_end *}
+{%- endblock repeated_row *}
