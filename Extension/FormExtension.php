@@ -163,7 +163,12 @@ class FormExtension extends AbstractExtension
     {
         list($view, $variables) = $this->extractFunctionParameters($params);
 
-        return $this->render($view, $template, 'row', $variables);
+        $blockName = 'form_rest';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+        return $engine->renderBlock($view, $resource, $blockName, $variables);
     }
 
     /**

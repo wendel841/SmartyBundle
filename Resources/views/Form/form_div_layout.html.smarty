@@ -27,8 +27,7 @@
 
 {* Misc *}
 
-{function form_start}
-{strip}
+{function form_start}{strip}
     {assign var=method value=$method|upper}
     {if $method eq "GET" or $method eq "POST"}
         {assign var=form_method value=$method}
@@ -39,14 +38,11 @@
     {if $form_method neq $method}
         <input type="hidden" name="_method" value="{$method}" />
     {/if}
-{/strip}
-{/function}
+{/strip}{/function}
 
-{function form_enctype}
-{strip}
+{function form_enctype}{strip}
     {if $multipart}enctype="multipart/form-data"{/if}
-{/strip}
-{/function}
+{/strip}{/function}
 
 {function form_errors}
     {if isset($errors) and $errors->count()}
@@ -61,31 +57,72 @@
     {/if}
 {/function}
 
+{function form_rest}
+    {* for child in form -%}
+        {% if not child.rendered %}
+            {{- form_row(child) -}}
+        {% endif %}
+    {%- endfor *}
+{/function}
+
 {* Support *}
 
-{function widget_attributes}
-{strip}
-    id="{$id|replace:'&':'&amp;'}" name="{$argv.name}"
-    {if $argv.read_only} readonly="readonly"{/if}
-    {if $argv.disabled} disabled="disabled"{/if}
-    {if $argv.required} required="required"{/if}
+{function form_rows}
+    {foreach from=$form item=child}
+        {call form_row form=$child}
+    {/foreach}
+{/function}
+
+{function widget_container_attributes}{strip}
+    {if $id}id="{$id|replace:'&':'&amp;'}"{/if}
+    {foreach from=$attr key=attrname item=attrvalue}
+        {' '}
+        {if $attrname == placeholder || $attrname == title}
+            {$attrname}="{$attrvalue|trans}"
+        {elseif $attrvalue === true}
+            {$attrname}="{$attrname}"
+        {elseif $attrvalue !== false}
+            {$attrname}="{$attrvalue|replace:'&':'&amp;'}"
+        {/if}
+    {/foreach}
+{/strip}{/function}
+
+{function widget_attributes}{strip}
+    id="{$id|replace:'&':'&amp;'}" name="{$name}"
+    {if $read_only} readonly="readonly"{/if}
+    {if $disabled} disabled="disabled"{/if}
+    {if $required} required="required"{/if}
 
     {assign var=attr value=$attr|array_merge:$argv.attr}
     {foreach from=$attr key=attrname item=attrvalue}
-        {if $attrname == placeholder || $attrname == title}{' '}
+        {' '}
+        {if $attrname == placeholder || $attrname == title}
             {$attrname}="{$attrvalue|trans}"
-        {elseif $attrvalue == true}{' '}
+        {elseif $attrvalue === true}
+            {$attrname}="{$attrname}"
+        {elseif $attrvalue !== false}
             {$attrname}="{$attrvalue|replace:'&':'&amp;'}"
-        {elseif $attrvalue != false}{' '}
-            {$attrname}="{$attrvalue}"
         {/if}
     {/foreach}
-{/strip}
-{/function}
+{/strip}{/function}
+
+{function button_attributes}{strip}
+    id="{$id|replace:'&':'&amp;'}" name="{$full_name}"{if $disabled} disabled="disabled"{/if}
+    {foreach from=$attr key=attrname item=attrvalue}
+        {' '}
+        {if $attrname eq 'placeholder' or $attrname eq 'title'}
+            {$attrname}="{$attrvalue|trans}"
+        {elseif $attrvalue === true}
+            {$attrname}="{$attrname}"
+        {elseif $attrvalue !== false}
+            {$attrname}="{$attrvalue|replace:'&':'&amp;'}"
+        {/if}
+    {/foreach}
+{/strip}{/function}
 
 {* Widgets *}
 
-{function form_widget}
+{function form_widget}{strip}
     {* There is a list of possible block names for the widgets. It make possible to customize the output.
      * E.g. <textarea> can't be rendered the same as text (<input type="text"), therefore we have to search
      * for textarea_widget first. After testing all possibilities (there are more of them, for example
@@ -107,11 +144,10 @@
             {break}
         {/if}
     {/foreach}
-{/function}
+{/strip}{/function}
 
 {function form_widget_simple}
-    {assign var=type value=$type|default:'text'}
-    <input type="{$type}" {call widget_attributes}{if $value != ''} value="{$value|replace:'&':'&amp;'}"{/if} />
+    <input type="{$type|default:'text'}" {call widget_attributes}{if $value != ''} value="{$value|replace:'&':'&amp;'}"{/if} />
 {/function}
 
 {* block form_widget_compound -%}
@@ -125,17 +161,22 @@
 {%- endblock form_widget_compound *}
 
 {function textarea_widget}
-    <textarea {call widget_attributes argv=$argv}>{$value|replace:'&':'&amp;'}</textarea>
+    <textarea {call widget_attributes}>{$value|replace:'&':'&amp;'}</textarea>
 {/function}
 
-{* Rows *}
+{function button_widget}{strip}
+    {if $label eq ''}
+        {assign var=label value=$name|humanize}
+    {/if}
+    <button type="{$type|default:'button'}" {call button_attributes}>{$label|trans}</button>
+{/strip}{/function}
 
-{function form_row}
-    <div>
-        {call form_label}
-        {call form_errors}
-        {call form_widget}
-    </div>
+{function submit_widget}
+    {call button_widget type=$type|default:'submit'}
+{/function}
+
+{function reset_widget}
+    {call button_widget type=$type|default:'reset'}
 {/function}
 
 {function choice_widget}
@@ -193,17 +234,56 @@
             <option value="{{ choice.value }}"{% if choice is selectedchoice(value) %} selected="selected"{% endif %}>{{ choice.label|trans({}, translation_domain) }}</option>
         {%- endif -%}
     {% endfor %}
-{%- endblock choice_widget_options %}
+{%- endblock choice_widget_options *}
 
-{% block checkbox_widget -%}
-    <input type="checkbox" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} />
-{%- endblock checkbox_widget %}
+{function checkbox_widget}
+    <input type="checkbox" {call widget_attributes}{if isset($value)} value="{$value|replace:'&':'&amp;'}"{/if}{if $checked} checked="checked"{/if} />
+{/function}
 
-{% block radio_widget -%}
-    <input type="radio" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} />
-{%- endblock radio_widget %}
+{function radio_widget}
+    <input type="radio" {call widget_attributes}{if isset($value)} value="{$value|replace:'&':'&amp;'}"{/if}{if $checked} checked="checked"{/if} />
+{/function}
 
-{% block datetime_widget -%}
+{function integer_widget}
+    {call form_widget_simple type=$type|default:'number'}
+{/function}
+
+{function money_widget}
+    {capture assign="widget_output"}
+        {call form_widget_simple}
+    {/capture}
+    {$money_pattern|replace:'{{ widget }}':$widget_output}
+{/function}
+
+{function url_widget}
+    {call form_widget_simple type=$type|default:'url'}
+{/function}
+
+{function search_widget}
+    {call form_widget_simple type=$type|default:'search'}
+{/function}
+
+{function hidden_widget}
+    {call form_widget_simple type=$type|default:'hidden'}
+{/function}
+
+{function password_widget}
+    {call form_widget_simple type=$type|default:'password'}
+{/function}
+
+{function email_widget}
+    {call form_widget_simple type=$type|default:'email'}
+{/function}
+
+{function percent_widget}
+    {call form_widget_simple type=$type|default:'text'}%
+{/function}
+
+{function number_widget}
+    {call form_widget_simple type=$type|default:'text'}
+{/function}
+
+{* block datetime_widget -%}
     {% if widget == 'single_text' %}
         {{- block('form_widget_simple') -}}
     {% else %}
@@ -241,71 +321,17 @@
     {%- endif %}
 {%- endblock time_widget %}
 
-{% block number_widget -%}
-    {# type="number" doesn't work with floats #}
-    {% set type = type|default('text') %}
-    {{- block('form_widget_simple') -}}
-{%- endblock number_widget %}
+{* Rows *}
 
-{% block integer_widget -%}
-    {% set type = type|default('number') %}
-    {{- block('form_widget_simple') -}}
-{%- endblock integer_widget %}
+{function form_row}
+    <div>
+        {call form_label}
+        {call form_errors}
+        {call form_widget}
+    </div>
+{/function}
 
-{% block money_widget -%}
-    {{ money_pattern|replace({ '{{ widget }}': block('form_widget_simple') })|raw }}
-{%- endblock money_widget %}
-
-{% block url_widget -%}
-    {% set type = type|default('url') %}
-    {{- block('form_widget_simple') -}}
-{%- endblock url_widget %}
-
-{% block search_widget -%}
-    {% set type = type|default('search') %}
-    {{- block('form_widget_simple') -}}
-{%- endblock search_widget %}
-
-{% block percent_widget -%}
-    {% set type = type|default('text') %}
-    {{- block('form_widget_simple') -}} %
-{%- endblock percent_widget %}
-
-{% block password_widget -%}
-    {% set type = type|default('password') %}
-    {{ block('form_widget_simple') }}
-{%- endblock password_widget %}
-
-{% block hidden_widget -%}
-    {% set type = type|default('hidden') %}
-    {{- block('form_widget_simple') -}}
-{%- endblock hidden_widget -%}
-
-{% block email_widget -%}
-    {% set type = type|default('email') %}
-    {{- block('form_widget_simple') -}}
-{%- endblock email_widget %}
-
-{% block button_widget -%}
-    {% if label is empty -%}
-        {% set label = name|humanize %}
-    {%- endif -%}
-    <button type="{{ type|default('button') }}" {{ block('button_attributes') }}>{{ label|trans({}, translation_domain) }}</button>
-{%- endblock button_widget %}
-
-{% block submit_widget -%}
-    {% set type = type|default('submit') %}
-    {{- block('button_widget') -}}
-{%- endblock submit_widget %}
-
-{% block reset_widget -%}
-    {% set type = type|default('reset') %}
-    {{- block('button_widget') -}}
-{%- endblock reset_widget %}
-
-{# Rows #}
-
-{% block repeated_row -%}
+{* block repeated_row -%}
     {#
     No need to render the errors here, as all errors are mapped
     to the first child (see RepeatedTypeValidatorExtension).
@@ -336,48 +362,4 @@
         {{- form_rest(form) -}}
     {% endif -%}
     </form>
-{%- endblock form_end %}
-
-{% block form_rest -%}
-    {% for child in form -%}
-        {% if not child.rendered %}
-            {{- form_row(child) -}}
-        {% endif %}
-    {%- endfor %}
-{% endblock form_rest %}
-
-{# Support #}
-
-{% block form_rows -%}
-    {% for child in form %}
-        {{- form_row(child) -}}
-    {% endfor %}
-{%- endblock form_rows %}
-
-{% block widget_container_attributes -%}
-    {%- if id is not empty %}id="{{ id }}"{% endif -%}
-    {%- for attrname, attrvalue in attr -%}
-        {{- " " -}}
-        {%- if attrname in ['placeholder', 'title'] -%}
-            {{- attrname }}="{{ attrvalue|trans({}, translation_domain) }}"
-        {%- elseif attrvalue is sameas(true) -%}
-            {{- attrname }}="{{ attrname }}"
-        {%- elseif attrvalue is not sameas(false) -%}
-            {{- attrname }}="{{ attrvalue }}"
-        {%- endif -%}
-    {%- endfor -%}
-{%- endblock widget_container_attributes %}
-
-{% block button_attributes -%}
-    id="{{ id }}" name="{{ full_name }}"{% if disabled %} disabled="disabled"{% endif -%}
-    {%- for attrname, attrvalue in attr -%}
-        {{- " " -}}
-        {%- if attrname in ['placeholder', 'title'] -%}
-            {{- attrname }}="{{ attrvalue|trans({}, translation_domain) }}"
-        {%- elseif attrvalue is sameas(true) -%}
-            {{- attrname }}="{{ attrname }}"
-        {%- elseif attrvalue is not sameas(false) -%}
-            {{- attrname }}="{{ attrvalue }}"
-        {%- endif -%}
-    {%- endfor -%}
-{%- endblock button_attributes *}
+{%- endblock form_end *}

@@ -149,7 +149,12 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
 
     protected function renderRest(FormView $view, array $vars = array())
     {
-        return '';
+  		$blockName = 'form_rest';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+		return $engine->renderBlock($view, $resource, $blockName, $vars);
     }
 
     protected function renderStart(FormView $view, array $vars = array())
