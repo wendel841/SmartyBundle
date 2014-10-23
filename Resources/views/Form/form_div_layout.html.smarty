@@ -1,27 +1,38 @@
 {* Labels *}
 
-{function form_label}
-    {if $label === null}{assign var=label value=$form->vars.label}{/if}
-    {if $label !== false}
-        {if !isset($label_attr)} {* Avoid not defined index error *}
-            {$label_attr = []}
-        {/if}
-        {if isset($form->vars.compound) and !$form->vars.compound}
-            {assign var=label_attr value=$label_attr|array_merge:['for' => $form->vars.id]}
-        {/if}
-        {if required}
-            {if array_key_exists('class', $label_attr)}
-                {$label_attr.class=$label_attr.class|cat:' required'}
-            {else}
-                {assign var=label_attr value=$label_attr|array_merge:['class' => 'required']}
+{function form_label}{strip}
+    {* See form_widget comments *}
+    {foreach from=$form->vars.block_prefixes|array_reverse item=block_prefix}
+        {assign var=block_name value=$block_prefix|cat:'_':label}
+        {assign var=template_func value=smarty_template_function_|cat:$block_name}
+
+        {if $block_prefix == 'form'}
+            {if $label === null}{assign var=label value=$form->vars.label}{/if}
+            {if $label !== false}
+                {if !isset($label_attr)} {* Avoid not defined index error *}
+                    {$label_attr = []}
+                {/if}
+                {if isset($form->vars.compound) and !$form->vars.compound}
+                    {assign var=label_attr value=$label_attr|array_merge:['for' => $form->vars.id]}
+                {/if}
+                {if required}
+                    {if array_key_exists('class', $label_attr)}
+                        {$label_attr.class=$label_attr.class|cat:' required'}
+                    {else}
+                        {assign var=label_attr value=$label_attr|array_merge:['class' => 'required']}
+                    {/if}
+                {/if}
+                {if $label == ''}
+                    {assign var=label value=$form->vars.name|humanize}
+                {/if}
+                <label{foreach from=$label_attr key=attrname item=attrvalue} {$attrname}="{$attrvalue|replace:'&':'&amp;'}"{/foreach}>{$label|replace:'&':'&amp;'|trans}</label>
             {/if}
+        {elseif $template_func|function_exists} 
+            {call $block_name}
+            {break}
         {/if}
-        {if $label == ''}
-            {assign var=label value=$form->vars.name|humanize}
-        {/if}
-        <label{foreach from=$label_attr key=attrname item=attrvalue} {$attrname}="{$attrvalue|replace:'&':'&amp;'}"{/foreach}>{$label|replace:'&':'&amp;'|trans}</label>
-    {/if}
-{/function}
+    {/foreach}
+{/strip}{/function}
 
 {function button_label}{/function}
 
@@ -34,7 +45,7 @@
     {else}
         {assign var=form_method value="POST"}
     {/if}
-    <form name="{$form->vars.name}" method="{$form_method|lower}" action="{$action}"{foreach from=$attr key=attrname item=attrvalue} {$attrname}="{$attrvalue}"{/foreach}{if $multipart} enctype="multipart/form-data"{/if}>
+    <form name="{$form->vars.name}" method="{$form_method|lower}" action="{$action}"{foreach from=$attr key=attrname item=attrvalue} {$attrname}="{$attrvalue|replace:'&':'&amp;'}"{/foreach}{if $multipart} enctype="multipart/form-data"{/if}>
     {if $form_method neq $method}
         <input type="hidden" name="_method" value="{$method}" />
     {/if}
@@ -44,7 +55,7 @@
     {if $multipart}enctype="multipart/form-data"{/if}
 {/strip}{/function}
 
-{function form_errors}
+{function form_errors}{strip}
     {if isset($form->vars.errors) and $form->vars.errors->count()}
     <ul>
         {$form->vars.errors->rewind()} {* Set the iterator's position to the beginning *}
@@ -55,21 +66,21 @@
         {/while}
     </ul>
     {/if}
-{/function}
+{/strip}{/function}
 
 {function form_rest}
-    {* for child in form -%}
-        {% if not child.rendered %}
-            {{- form_row(child) -}}
-        {% endif %}
-    {%- endfor *}
+    {foreach from=$form->children item=child}
+        {if !$child->isRendered()}
+            {form_row form=$child id=$child->vars.id}
+        {/if}
+    {/foreach}
 {/function}
 
 {* Support *}
 
 {function form_rows}
     {foreach from=$form->children item=child}
-        {call form_row form=$child}
+        {call form_row form=$child id=$child->vars.id}
     {/foreach}
 {/function}
 
@@ -88,9 +99,9 @@
 {/strip}{/function}
 
 {function widget_attributes}{strip}
-    id="{$id|replace:'&':'&amp;'}" name="{$name}"
-    {if $read_only} readonly="readonly"{/if}
-    {if $disabled} disabled="disabled"{/if}
+    id="{$id|replace:'&':'&amp;'}" name="{$form->vars.full_name}"
+    {if $form->vars.read_only} readonly="readonly"{/if}
+    {if $form->vars.disabled} disabled="disabled"{/if}
     {if $required} required="required"{/if}
 
     {assign var=attr value=$attr|array_merge:$form->vars.attr}
@@ -107,7 +118,7 @@
 {/strip}{/function}
 
 {function button_attributes}{strip}
-    id="{$id|replace:'&':'&amp;'}" name="{$full_name}"{if $disabled} disabled="disabled"{/if}
+    id="{$id|replace:'&':'&amp;'}" name="{$form->vars.full_name}"{if $disabled} disabled="disabled"{/if}
     {foreach from=$attr key=attrname item=attrvalue}
         {' '}
         {if $attrname eq 'placeholder' or $attrname eq 'title'}
@@ -120,18 +131,18 @@
     {/foreach}
 {/strip}{/function}
 
-{* block form -%}
-    {{ form_start(form) }}
-        {{- form_widget(form) -}}
-    {{ form_end(form) }}
-{%- endblock form %}
-
-{% block form_end -%}
-    {% if not render_rest is defined or render_rest %}
-        {{- form_rest(form) -}}
-    {% endif -%}
+{function form_end}{strip}
+    {if !isset($render_rest) or $render_rest}
+        {call form_rest}
+    {/if}
     </form>
-{%- endblock form_end *}
+{/strip}{/function}
+
+{function form}
+    {call form_start}
+    {call form_widget}
+    {call form_end}
+{/function}
 
 {* Widgets *}
 
@@ -146,7 +157,7 @@
 
         {* form_widget shouldn't call itself, it would start an endless recursion *}
         {if $block_prefix == 'form' && $form->vars.compound}
-            {*- block('form_widget_compound')*}
+            {call form_widget_compound}
             {break}
         {elseif $block_prefix == 'form'}
             {call form_widget_simple}
@@ -159,21 +170,23 @@
 {/strip}{/function}
 
 {function form_widget_simple}{strip}
-    <input type="{$type|default:'text'}" {call widget_attributes}{if $value != ''} value="{$value|replace:'&':'&amp;'}"{/if} />
+    {assign var="required" value=$form->vars.required}
+    <input type="{$type|default:'text'}" {call widget_attributes}{if $form->vars.value != ''} value="{$form->vars.value|replace:'&':'&amp;'}"{/if} />
 {/strip}{/function}
 
-{* block form_widget_compound -%}
-    <div {{ block('widget_container_attributes') }}>
-        {%- if form.parent is empty -%}
-            {{ form_errors(form) }}
-        {%- endif -%}
-        {{- block('form_rows') -}}
-        {{- form_rest(form) -}}
+{function form_widget_compound}
+    <div {call widget_container_attributes}>
+        {if !$form->parent}
+            {call form_errors}
+        {/if}
+        {call form_rows}
+        {call form_rest}
     </div>
-{%- endblock form_widget_compound *}
+{/function}
 
 {function textarea_widget}
-    <textarea {call widget_attributes}>{$value|replace:'&':'&amp;'}</textarea>
+    {assign var="required" value=$form->vars.required}
+    <textarea {call widget_attributes}>{$form->vars.value|replace:'&':'&amp;'}</textarea>
 {/function}
 
 {function button_widget}{strip}
@@ -192,68 +205,70 @@
 {/function}
 
 {function choice_widget}
-    {* if expanded %}
-        {{- block('choice_widget_expanded') -}}
-    {% else %}
-        {{- block('choice_widget_collapsed') -}}
-    {% endif *}
+    {if $form->vars.expanded}
+        {call choice_widget_expanded}
+    {else}
+        {call choice_widget_collapsed}
+    {/if}
 {/function}
 
-{* block collection_widget -%}
-    {% if prototype is defined %}
+{function collection_widget}
+    {* if prototype is defined %}
         {%- set attr = attr|merge({'data-prototype': form_row(prototype) }) -%}
     {% endif %}
-    {{- block('form_widget') -}}
-{%- endblock collection_widget %}
+    {{- block('form_widget') -*}
+{/function}
 
-{% block choice_widget_expanded -%}
-    <div {{ block('widget_container_attributes') }}>
-    {%- for child in form %}
-        {{- form_widget(child) -}}
-        {{- form_label(child) -}}
-    {% endfor -%}
+{function choice_widget_expanded}
+    <div {call widget_container_attributes}>
+    {foreach from=$form->children item=child}
+        {form_widget form=$child id=$child->vars.id}
+        {form_label form=$child id=$child->vars.id}
+    {/foreach}
     </div>
-{% endblock choice_widget_expanded %}
+{/function}
 
-{% block choice_widget_collapsed -%}
-    {% if required and empty_value is none and not empty_value_in_choices and not multiple -%}
-        {% set required = false %}
-    {%- endif -%}
-    <select {{ block('widget_attributes') }}{% if multiple %} multiple="multiple"{% endif %}>
-        {% if empty_value is not none -%}
-            <option value=""{% if required and value is empty %} selected="selected"{% endif %}>{{ empty_value|trans({}, translation_domain) }}</option>
-        {%- endif %}
-        {%- if preferred_choices|length > 0 -%}
-            {% set options = preferred_choices %}
-            {{- block('choice_widget_options') -}}
-            {% if choices|length > 0 and separator is not none -%}
-                <option disabled="disabled">{{ separator }}</option>
-            {%- endif %}
-        {%- endif -%}
-        {% set options = choices -%}
-        {{- block('choice_widget_options') -}}
+{function choice_widget_collapsed}
+    {if !isset($empty_value)}
+        {assign var=empty_value value=$form->vars.empty_value}
+    {/if}
+    {if $form->vars.required and $empty_value === null and !$form->vars.empty_value_in_choices and !$form->vars.multiple}
+        {assign var=required value=false}
+    {/if}
+    <select {call widget_attributes}{if $form->vars.multiple} multiple="multiple"{/if}>
+        {if $empty_value !== null}
+            <option value=""{if $form->vars.required and $form->vars.value == ''} selected="selected"{/if}>{$empty_value|replace:'&':'&amp;'|trans}</option>
+        {/if}
+        {if $form->vars.preferred_choices|count > 0}
+            {call choice_widget_options options=$preferred_choices}
+            {if $form->vars.choices|count > 0 and $separator !== null}
+                <option disabled="disabled">{$separator}</option>
+            {/if}
+        {/if}
+        {call choice_widget_options options=$form->vars.choices}
     </select>
-{%- endblock choice_widget_collapsed %}
+{/function}
 
-{% block choice_widget_options -%}
-    {% for group_label, choice in options %}
-        {%- if choice is iterable -%}
-            <optgroup label="{{ group_label|trans({}, translation_domain) }}">
-                {% set options = choice %}
-                {{- block('choice_widget_options') -}}
+{function choice_widget_options}
+    {foreach from=$options key=group_label item=choice}
+        {if $choice instanceof 'Symfony\Component\Form\Extension\Core\View\ChoiceView'}
+            <option value="{$choice->value|replace:'&':'&amp;'}"{if $choice|selectedchoice:$form->vars.value} selected="selected"{/if}>{$choice->label|replace:'&':'&amp;'|trans}</option>
+        {else}
+            <optgroup label="{$group_label|replace:'&':'&amp;'|trans}">
+                {call choice_widget_options options=$choice}
             </optgroup>
-        {%- else -%}
-            <option value="{{ choice.value }}"{% if choice is selectedchoice(value) %} selected="selected"{% endif %}>{{ choice.label|trans({}, translation_domain) }}</option>
-        {%- endif -%}
-    {% endfor %}
-{%- endblock choice_widget_options *}
+        {/if}
+    {/foreach}
+{/function}
 
 {function checkbox_widget}
-    <input type="checkbox" {call widget_attributes}{if isset($value)} value="{$value|replace:'&':'&amp;'}"{/if}{if $checked} checked="checked"{/if} />
+    {assign var="required" value=$form->vars.required}
+    <input type="checkbox" {call widget_attributes}{if isset($form->vars.value)} value="{$form->vars.value|replace:'&':'&amp;'}"{/if}{if $form->vars.checked} checked="checked"{/if} />
 {/function}
 
 {function radio_widget}
-    <input type="radio" {call widget_attributes}{if isset($value)} value="{$value|replace:'&':'&amp;'}"{/if}{if $checked} checked="checked"{/if} />
+    {assign var="required" value=$form->vars.required}
+    <input type="radio" {call widget_attributes}{if isset($form->vars.value)} value="{$form->vars.value|replace:'&':'&amp;'}"{/if}{if $form->vars.checked} checked="checked"{/if} />
 {/function}
 
 {function integer_widget}
@@ -295,43 +310,51 @@
     {call form_widget_simple type=$type|default:'text'}
 {/function}
 
-{* block datetime_widget -%}
-    {% if widget == 'single_text' %}
-        {{- block('form_widget_simple') -}}
-    {% else %}
-        <div {{ block('widget_container_attributes') }}>
-            {{- form_errors(form.date) -}}
-            {{- form_errors(form.time) -}}
-            {{- form_widget(form.date) -}}
-            {{- form_widget(form.time) -}}
+{function datetime_widget}
+    {if $form->vars.widget == 'single_text'}
+        {call form_widget_simple}
+    {else}
+        <div {call widget_container_attributes}>
+            {form_errors form=$form->children.date}
+            {form_errors form=$form->children.time}
+            {form_widget form=$form->children.date id=$form->children.date->vars.id}
+            {form_widget form=$form->children.time id=$form->children.time->vars.id}
         </div>
-    {% endif %}
-{%- endblock datetime_widget %}
+    {/if}
+{/function}
 
-{% block date_widget -%}
-    {% if widget == 'single_text' %}
-        {{- block('form_widget_simple') -}}
-    {% else -%}
-        <div {{ block('widget_container_attributes') }}>
-            {{- date_pattern|replace({
-                '{{ year }}':  form_widget(form.year),
-                '{{ month }}': form_widget(form.month),
-                '{{ day }}':   form_widget(form.day),
-            })|raw -}}
-        </div>
-    {%- endif %}
-{%- endblock date_widget %}
+{function date_widget}
+    {if $form->vars.widget == 'single_text'}
+        {call form_widget_simple type='date'}
+    {else}
+        <div {widget_container_attributes}>
+            {capture assign="year_output"}
+                {form_widget form=$form->children.year id=$form->children.year->vars.id}
+            {/capture}
+            {capture assign="month_output"}
+                {form_widget form=$form->children.month id=$form->children.month->vars.id}
+            {/capture}
+            {capture assign="day_output"}
+                {form_widget form=$form->children.day id=$form->children.day->vars.id}
+            {/capture}
 
-{% block time_widget -%}
-    {% if widget == 'single_text' %}
-        {{- block('form_widget_simple') -}}
-    {% else -%}
-        {% set vars = widget == 'text' ? { 'attr': { 'size': 1 }} : {} %}
-        <div {{ block('widget_container_attributes') }}>
-            {{ form_widget(form.hour, vars) }}{% if with_minutes %}:{{ form_widget(form.minute, vars) }}{% endif %}{% if with_seconds %}:{{ form_widget(form.second, vars) }}{% endif %}
+            {$form->vars.date_pattern|replace:'{{ year }}':$year_output|replace:'{{ month }}':$month_output|replace:'{{ day }}':$day_output}
         </div>
-    {%- endif %}
-{%- endblock time_widget %}
+    {/if}
+{/function}
+
+{function time_widget}
+    {if $form->vars.widget == 'single_text'}
+        {call form_widget_simple type='time'}
+    {else}
+        {if $form->vars.widget == 'text'}
+            {assign var=attr value=$attr|array_merge:['size' => 1]}
+        {/if}
+        <div {call widget_container_attributes}>
+            {form_widget form=$form->children.hour id=$form->children.hour->vars.id}{if $form->vars.with_minutes}:{form_widget form=$form->children.minute id=$form->children.minute->vars.id}{/if}{if $form->vars.with_seconds}:{form_widget form=$form->children.second id=$form->children.second->vars.id}{/if}
+        </div>
+    {/if}
+{/function}
 
 {* Rows *}
 
@@ -365,10 +388,10 @@
     {call form_widget}
 {/function}
 
-{* block repeated_row -%}
-    {#
+{function repeated_row}
+    {*
     No need to render the errors here, as all errors are mapped
     to the first child (see RepeatedTypeValidatorExtension).
-    #}
-    {{- block('form_rows') -}}
-{%- endblock repeated_row *}
+    *}
+    {call form_rows}
+{/function}

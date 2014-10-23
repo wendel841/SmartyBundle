@@ -82,10 +82,10 @@ class FormExtension extends AbstractExtension
             new FunctionPlugin('form_label', $this, 'renderLabel'),
             new FunctionPlugin('form_row', $this, 'renderRow'),
             new FunctionPlugin('form_rest', $this, 'renderRest'),
-            //'form'         => new \Twig_Function_Node('Symfony\Bridge\Twig\Node\RenderBlockNode', array('is_safe' => array('html'))),
+            new FunctionPlugin('form', $this, 'renderForm'),
             new FunctionPlugin('form_start', $this, 'renderStart'),
-            //'form_end'     => new \Twig_Function_Node('Symfony\Bridge\Twig\Node\RenderBlockNode', array('is_safe' => array('html'))),
-            new ModifierPlugin('form_is_selectedchoice', $this, 'isSelectedChoice'),
+            new FunctionPlugin('form_end', $this, 'renderEnd'),
+            new ModifierPlugin('selectedchoice', $this, 'isSelectedChoice'),
             new ModifierPlugin('form_csrf_token', $this, array($this->renderer, 'renderCsrfToken')),
             new ModifierPlugin('humanize', $this, 'humanize'),
         );
@@ -172,6 +172,26 @@ class FormExtension extends AbstractExtension
     }
 
     /**
+     * Renders the form.
+     *
+     * @param array  $params   Attributes passed from the template.
+     * @param object $template The \Smarty_Internal_Template instance.
+     *
+     * @return string The html markup
+     */
+    public function renderForm($params, \Smarty_Internal_Template $template)
+    {
+        list($view, $variables) = $this->extractFunctionParameters($params);
+
+        $blockName = 'form';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+        return $engine->renderBlock($view, $resource, $blockName, $variables);
+    }
+
+    /**
      * Renders the start of the form.
      *
      * @param array  $params   Attributes passed from the template.
@@ -184,6 +204,26 @@ class FormExtension extends AbstractExtension
         list($view, $variables) = $this->extractFunctionParameters($params);
 
         $blockName = 'form_start';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+        return $engine->renderBlock($view, $resource, $blockName, $variables);
+    }
+
+    /**
+     * Renders the end of the form.
+     *
+     * @param array  $params   Attributes passed from the template.
+     * @param object $template The \Smarty_Internal_Template instance.
+     *
+     * @return string The html markup
+     */
+    public function renderEnd($params, \Smarty_Internal_Template $template)
+    {
+        list($view, $variables) = $this->extractFunctionParameters($params);
+
+        $blockName = 'form_end';
         $engine = $this->renderer->getEngine();
 
         $resource = $engine->getResourceForBlockName($view, $blockName);

@@ -93,11 +93,17 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
         /* Register modifiers */
         $smarty->registerPlugin('modifier', 'trans', array(new ProjectTranslator, 'trans'));
         $smarty->registerPlugin('modifier', 'humanize', array($this->extension, 'humanize'));
+        $smarty->registerPlugin('modifier', 'selectedchoice', array($this->extension, 'isSelectedChoice'));
     }
 
     protected function renderForm(FormView $view, array $vars = array())
     {
-        return '';
+		$blockName = 'form';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+		return $engine->renderBlock($view, $resource, $blockName, $vars);
     }
 
     protected function renderEnctype(FormView $view)
@@ -169,7 +175,12 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
 
     protected function renderEnd(FormView $view, array $vars = array())
     {
-        return '';
+  		$blockName = 'form_end';
+        $engine = $this->renderer->getEngine();
+
+        $resource = $engine->getResourceForBlockName($view, $blockName);
+
+		return $engine->renderBlock($view, $resource, $blockName, $vars);
     }
 
     protected function setTheme(FormView $view, array $themes)
