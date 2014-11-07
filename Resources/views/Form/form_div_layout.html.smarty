@@ -112,6 +112,7 @@
     {foreach from=$form->children item=child}
         {if !$child->isRendered()}
             {form_row form=$child id=$child->vars.id}
+            {assign var=child value=$child->setRendered()}
         {/if}
     {/foreach}
 {/function}
@@ -253,9 +254,13 @@
 {/function}
 
 {function collection_widget}
-    {* if prototype is defined %}
-        {%- set attr = attr|merge({'data-prototype': form_row(prototype) }) -%}
-    {% endif *}
+    {if isset($form->vars.prototype)}
+        {capture assign="prototype_output"}
+            {form_row form=$form->vars.prototype}
+        {/capture}
+        {assign var=attr value=$attr|array_merge:['data-prototype' => $prototype_output]}
+    {/if}
+
     <div {call widget_container_attributes}>
     {foreach from=$form->children item=child}
         {form_row form=$child id=$child->vars.id}
