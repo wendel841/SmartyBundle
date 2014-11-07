@@ -1,3 +1,43 @@
+{* Rows *}
+
+{function form_row}
+    {* See form_widget comments *}
+    {foreach from=$form->vars.block_prefixes|array_reverse item=block_prefix}
+        {assign var=block_name value=$block_prefix|cat:'_':row}
+        {assign var=template_func value=smarty_template_function_|cat:$block_name}
+
+        {if $block_prefix == 'form'}
+            <div>
+                {call form_label}
+                {call form_errors}
+                {call form_widget}
+            </div>
+            {break}
+        {elseif $template_func|function_exists} 
+            {call $block_name}
+            {break}
+        {/if}
+    {/foreach}
+{/function}
+
+{function button_row}
+    <div>
+        {call form_widget}
+    </div>
+{/function}
+
+{function hidden_row}
+    {call form_widget}
+{/function}
+
+{function repeated_row}
+    {*
+    No need to render the errors here, as all errors are mapped
+    to the first child (see RepeatedTypeValidatorExtension).
+    *}
+    {call form_rows}
+{/function}
+
 {* Labels *}
 
 {function form_label}{strip}
@@ -80,7 +120,7 @@
 
 {function form_rows}
     {foreach from=$form->children item=child}
-        {call form_row form=$child id=$child->vars.id}
+        {form_row form=$child id=$child->vars.id}
     {/foreach}
 {/function}
 
@@ -215,8 +255,12 @@
 {function collection_widget}
     {* if prototype is defined %}
         {%- set attr = attr|merge({'data-prototype': form_row(prototype) }) -%}
-    {% endif %}
-    {{- block('form_widget') -*}
+    {% endif *}
+    <div {call widget_container_attributes}>
+    {foreach from=$form->children item=child}
+        {form_row form=$child id=$child->vars.id}
+    {/foreach}
+    </div>
 {/function}
 
 {function choice_widget_expanded}
@@ -354,44 +398,4 @@
             {form_widget form=$form->children.hour id=$form->children.hour->vars.id}{if $form->vars.with_minutes}:{form_widget form=$form->children.minute id=$form->children.minute->vars.id}{/if}{if $form->vars.with_seconds}:{form_widget form=$form->children.second id=$form->children.second->vars.id}{/if}
         </div>
     {/if}
-{/function}
-
-{* Rows *}
-
-{function form_row}
-    {* See form_widget comments *}
-    {foreach from=$form->vars.block_prefixes|array_reverse item=block_prefix}
-        {assign var=block_name value=$block_prefix|cat:'_':row}
-        {assign var=template_func value=smarty_template_function_|cat:$block_name}
-
-        {if $block_prefix == 'form'}
-            <div>
-                {call form_label}
-                {call form_errors}
-                {call form_widget}
-            </div>
-            {break}
-        {elseif $template_func|function_exists} 
-            {call $block_name}
-            {break}
-        {/if}
-    {/foreach}
-{/function}
-
-{function button_row}
-    <div>
-        {call form_widget}
-    </div>
-{/function}
-
-{function hidden_row}
-    {call form_widget}
-{/function}
-
-{function repeated_row}
-    {*
-    No need to render the errors here, as all errors are mapped
-    to the first child (see RepeatedTypeValidatorExtension).
-    *}
-    {call form_rows}
 {/function}
