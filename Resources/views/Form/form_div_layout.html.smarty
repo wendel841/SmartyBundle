@@ -65,7 +65,7 @@
                 {if $label == ''}
                     {assign var=label value=$form->vars.name|humanize}
                 {/if}
-                <label{foreach from=$label_attr key=attrname item=attrvalue} {$attrname}="{$attrvalue|replace:'&':'&amp;'}"{/foreach}>{$label|replace:'&':'&amp;'|trans}</label>
+                <label{foreach from=$label_attr key=attrname item=attrvalue} {$attrname}="{$attrvalue|escape:html}"{/foreach}>{$label|escape:html|trans}</label>
             {/if}
         {elseif $template_func|function_exists} 
             {call $block_name}
@@ -85,7 +85,7 @@
     {else}
         {assign var=form_method value="POST"}
     {/if}
-    <form name="{$form->vars.name}" method="{$form_method|lower}" action="{$action}"{foreach from=$attr key=attrname item=attrvalue} {$attrname}="{$attrvalue|replace:'&':'&amp;'}"{/foreach}{if $multipart} enctype="multipart/form-data"{/if}>
+    <form name="{$form->vars.name}" method="{$form_method|lower}" action="{$action}"{foreach from=$attr key=attrname item=attrvalue} {$attrname}="{$attrvalue|escape:html}"{/foreach}{if $multipart} enctype="multipart/form-data"{/if}>
     {if $form_method neq $method}
         <input type="hidden" name="_method" value="{$method}" />
     {/if}
@@ -125,7 +125,7 @@
 {/function}
 
 {function widget_container_attributes}{strip}
-    {if $id}id="{$id|replace:'&':'&amp;'}"{/if}
+    {if $id}id="{$id|escape:html}"{/if}
     {foreach from=$attr key=attrname item=attrvalue}
         {' '}
         {if $attrname == placeholder || $attrname == title}
@@ -133,13 +133,13 @@
         {elseif $attrvalue === true}
             {$attrname}="{$attrname}"
         {elseif $attrvalue !== false}
-            {$attrname}="{$attrvalue|replace:'&':'&amp;'}"
+            {$attrname}="{$attrvalue|escape:html}"
         {/if}
     {/foreach}
 {/strip}{/function}
 
 {function widget_attributes}{strip}
-    id="{$id|replace:'&':'&amp;'}" name="{$form->vars.full_name}"
+    id="{$id|escape:html}" name="{$form->vars.full_name}"
     {if $form->vars.read_only} readonly="readonly"{/if}
     {if $form->vars.disabled} disabled="disabled"{/if}
     {if $required} required="required"{/if}
@@ -152,13 +152,13 @@
         {elseif $attrvalue === true}
             {$attrname}="{$attrname}"
         {elseif $attrvalue !== false}
-            {$attrname}="{$attrvalue|replace:'&':'&amp;'}"
+            {$attrname}="{$attrvalue|escape:html}"
         {/if}
     {/foreach}
 {/strip}{/function}
 
 {function button_attributes}{strip}
-    id="{$id|replace:'&':'&amp;'}" name="{$form->vars.full_name}"{if $disabled} disabled="disabled"{/if}
+    id="{$id|escape:html}" name="{$form->vars.full_name}"{if $disabled} disabled="disabled"{/if}
     {foreach from=$attr key=attrname item=attrvalue}
         {' '}
         {if $attrname eq 'placeholder' or $attrname eq 'title'}
@@ -166,7 +166,7 @@
         {elseif $attrvalue === true}
             {$attrname}="{$attrname}"
         {elseif $attrvalue !== false}
-            {$attrname}="{$attrvalue|replace:'&':'&amp;'}"
+            {$attrname}="{$attrvalue|escape:html}"
         {/if}
     {/foreach}
 {/strip}{/function}
@@ -212,7 +212,7 @@
 
 {function form_widget_simple}{strip}
     {assign var="required" value=$form->vars.required}
-    <input type="{$type|default:'text'}" {call widget_attributes}{if $form->vars.value != ''} value="{$form->vars.value|replace:'&':'&amp;'}"{/if} />
+    <input type="{$type|default:'text'}" {call widget_attributes}{if $form->vars.value != ''} value="{$form->vars.value|escape:html}"{/if} />
 {/strip}{/function}
 
 {function form_widget_compound}
@@ -227,7 +227,7 @@
 
 {function textarea_widget}
     {assign var="required" value=$form->vars.required}
-    <textarea {call widget_attributes}>{$form->vars.value|replace:'&':'&amp;'}</textarea>
+    <textarea {call widget_attributes}>{$form->vars.value|escape:html}</textarea>
 {/function}
 
 {function button_widget}{strip}
@@ -258,7 +258,7 @@
         {capture assign="prototype_output"}
             {form_row form=$form->vars.prototype}
         {/capture}
-        {assign var=attr value=$attr|array_merge:['data-prototype' => $prototype_output]}
+        {assign var=attr value=$attr|array_merge:['data-prototype' => $prototype_output|escape:html]}
     {/if}
 
     <div {call widget_container_attributes}>
@@ -286,7 +286,7 @@
     {/if}
     <select {call widget_attributes}{if $form->vars.multiple} multiple="multiple"{/if}>
         {if $empty_value !== null}
-            <option value=""{if $form->vars.required and $form->vars.value == ''} selected="selected"{/if}>{$empty_value|replace:'&':'&amp;'|trans}</option>
+            <option value=""{if $form->vars.required and $form->vars.value == ''} selected="selected"{/if}>{$empty_value|escape:html|trans}</option>
         {/if}
         {if $form->vars.preferred_choices|count > 0}
             {call choice_widget_options options=$preferred_choices}
@@ -301,9 +301,9 @@
 {function choice_widget_options}
     {foreach from=$options key=group_label item=choice}
         {if $choice instanceof 'Symfony\Component\Form\Extension\Core\View\ChoiceView'}
-            <option value="{$choice->value|replace:'&':'&amp;'}"{if $choice|selectedchoice:$form->vars.value} selected="selected"{/if}>{$choice->label|replace:'&':'&amp;'|trans}</option>
+            <option value="{$choice->value|escape:html}"{if $choice|selectedchoice:$form->vars.value} selected="selected"{/if}>{$choice->label|escape:html|trans}</option>
         {else}
-            <optgroup label="{$group_label|replace:'&':'&amp;'|trans}">
+            <optgroup label="{$group_label|escape:html|trans}">
                 {call choice_widget_options options=$choice}
             </optgroup>
         {/if}
@@ -312,12 +312,12 @@
 
 {function checkbox_widget}
     {assign var="required" value=$form->vars.required}
-    <input type="checkbox" {call widget_attributes}{if isset($form->vars.value)} value="{$form->vars.value|replace:'&':'&amp;'}"{/if}{if $form->vars.checked} checked="checked"{/if} />
+    <input type="checkbox" {call widget_attributes}{if isset($form->vars.value)} value="{$form->vars.value|escape:html}"{/if}{if $form->vars.checked} checked="checked"{/if} />
 {/function}
 
 {function radio_widget}
     {assign var="required" value=$form->vars.required}
-    <input type="radio" {call widget_attributes}{if isset($form->vars.value)} value="{$form->vars.value|replace:'&':'&amp;'}"{/if}{if $form->vars.checked} checked="checked"{/if} />
+    <input type="radio" {call widget_attributes}{if isset($form->vars.value)} value="{$form->vars.value|escape:html}"{/if}{if $form->vars.checked} checked="checked"{/if} />
 {/function}
 
 {function integer_widget}
