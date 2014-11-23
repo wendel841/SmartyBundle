@@ -2,22 +2,24 @@
 
 {function form_row}
     {* See form_widget comments *}
-    {foreach from=$form->vars.block_prefixes|array_reverse item=block_prefix}
-        {assign var=block_name value=$block_prefix|cat:'_':row}
-        {assign var=template_func value=smarty_template_function_|cat:$block_name}
+    {if !$form->isRendered()}
+        {foreach from=$form->vars.block_prefixes|array_reverse item=block_prefix}
+            {assign var=block_name value=$block_prefix|cat:'_':row}
+            {assign var=template_func value=smarty_template_function_|cat:$block_name}
 
-        {if $block_prefix == 'form'}
-            <div>
-                {call form_label}
-                {call form_errors}
-                {call form_widget}
-            </div>
-            {break}
-        {elseif $template_func|function_exists} 
-            {call $block_name}
-            {break}
-        {/if}
-    {/foreach}
+            {if $block_prefix == 'form'}
+                <div>
+                    {call form_label}
+                    {call form_errors}
+                    {call form_widget}
+                </div>
+                {break}
+            {elseif $template_func|function_exists} 
+                {call $block_name}
+                {break}
+            {/if}
+        {/foreach}
+    {/if}
 {/function}
 
 {function button_row}

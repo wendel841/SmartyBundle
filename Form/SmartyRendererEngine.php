@@ -60,8 +60,6 @@ class SmartyRendererEngine extends AbstractRendererEngine implements SmartyRende
      */
     public function renderBlock(FormView $view, $resource, $blockName, array $variables = array())
     {
-        $view->setRendered();
-
         return $this->engine->fetchTemplateFunction($resource, $blockName, array_merge($view->vars, $variables));
     }
 
