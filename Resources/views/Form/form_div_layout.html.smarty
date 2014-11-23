@@ -112,7 +112,6 @@
     {foreach from=$form->children item=child}
         {if !$child->isRendered()}
             {form_row form=$child id=$child->vars.id}
-            {assign var=child value=$child->setRendered()}
         {/if}
     {/foreach}
 {/function}
@@ -207,6 +206,7 @@
             {call $block_name}
             {break}
         {/if}
+        {assign var=form value=$form->setRendered()}
     {/foreach}
 {/strip}{/function}
 
