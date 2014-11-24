@@ -233,6 +233,7 @@
 {/function}
 
 {function button_widget}{strip}
+    {if $label === null}{assign var=label value=$form->vars.label}{/if}
     {if $label eq ''}
         {assign var=label value=$name|humanize}
     {/if}
