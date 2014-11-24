@@ -78,10 +78,10 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
             null, // global
             null // logger
         );
-        $this->engine->setTemplateDir(__DIR__.'/../../Resources/views/Form');
 
         $rendererEngine = new SmartyRendererEngine($this->engine, array(
             'form_div_layout.html.smarty',
+            '../../../Tests/Extension/custom_widgets.html.smarty',
         ));
         $this->renderer = new SmartyRenderer(
             $rendererEngine,

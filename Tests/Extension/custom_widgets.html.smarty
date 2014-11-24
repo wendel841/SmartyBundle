@@ -1,0 +1,14 @@
+{include 'file:SmartyBundle:Form:form_div_layout.html.smarty'}
+
+{function _text_id_widget}{strip}
+    <div id="container">
+        {call form_widget_simple}
+    </div>
+{/strip}{/function}
+
+{function _name_entry_label}{strip}
+    {if $label == ''}
+        {assign var=label value=$form->vars.name|humanize}
+    {/if}
+    <label>Custom label: {$label|trans}</label>
+{/strip}{/function}
