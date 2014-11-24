@@ -186,4 +186,12 @@ class FormExtensionDivLayoutTest extends AbstractDivLayoutTest
     protected function setTheme(FormView $view, array $themes)
     {
     }
+
+    public function testThemeInheritance($parentTheme = '', $childTheme = '')
+    {
+    }
+
+    public function testThemeBlockInheritance($theme = '')
+    {
+    }
 }
