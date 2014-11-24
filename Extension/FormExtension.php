@@ -33,7 +33,9 @@ use NoiseLabs\Bundle\SmartyBundle\Extension\Plugin\ModifierPlugin;
 use NoiseLabs\Bundle\SmartyBundle\Form\SmartyRendererInterface;
 use Symfony\Component\Form\Extension\Core\View\ChoiceView;
 use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\Exception\FormException;
+use Symfony\Component\Form\Exception\BadMethodCallException;
+use Symfony\Component\Form\Exception\UnexpectedTypeException;
+use Symfony\Component\Form\Exception\RuntimeException;
 use Symfony\Component\Form\Util\FormUtil;
 
 /**
@@ -63,7 +65,7 @@ class FormExtension extends AbstractExtension
     /**
      * Constructor.
      *
-     * @param SmartyRendererInterface $renderer A SmartyRendererInterface instance
+     * @param SmartyRendererInterface $renderer A SmartyRendererInterface instance.
      */
     public function __construct(SmartyRendererInterface $renderer)
     {
@@ -337,7 +339,7 @@ class FormExtension extends AbstractExtension
      *
      * @return string The html markup
      *
-     * @throws FormException if no template block exists to render the given section of the view
+     * @throws RuntimeException if no template block exists to render the given section of the view
      */
     protected function render(FormView $view, \Smarty_Internal_Template $template, $section, array $variables = array())
     {
@@ -392,31 +394,36 @@ class FormExtension extends AbstractExtension
             }
         } while (--$typeIndex >= 0);
 
-        throw new FormException(sprintf(
+        throw new RuntimeException(sprintf(
             'Unable to render the form as none of the following functions exist: "%s".',
             implode('", "', array_reverse($types))
         ));
     }
 
     /**
-     * Returns, if available, the $form parameter from the parameters array
-     * passed to the Smarty plugin function. When missing a FormException is
-     * thrown.
+     * Extracts, if available, the $form parameter from the parameters array
+     * passed to the Smarty plugin function.
+     *
+     * @param array $params Parameters passed from the template.
+     * @return @array The $form parameter from the parameters array.
+     *
+     * @throw BadMethodCallException When missing the $form parameter.
+     * @throw UnexpectedTypeException When the $form parameter has wrong type.
      */
-    protected function extractFunctionParameters(array $parameters)
+    protected function extractFunctionParameters(array $params)
     {
-        if (!isset($parameters['form'])) {
-            throw new FormException('"form" parameter missing in Smarty template function.');
+        if (!isset($params['form'])) {
+            throw new BadMethodCallException('"form" parameter missing in Smarty template function.');
         }
 
-        if (!$parameters['form'] instanceof FormView) {
-            throw new \InvalidArgumentException('"form" parameter must be an instance of Symfony\Component\Form\FormView');
+        if (!$params['form'] instanceof FormView) {
+            throw new UnexpectedTypeException($params['form'], 'Symfony\Component\Form\FormView');
         }
 
-        $view = $parameters['form'];
-        unset($parameters['form']);
+        $view = $params['form'];
+        unset($params['form']);
 
-        return array($view, $parameters);
+        return array($view, $params);
     }
 
     /**
