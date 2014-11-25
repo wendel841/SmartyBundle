@@ -57,7 +57,7 @@
                 {if isset($form->vars.compound) and !$form->vars.compound}
                     {assign var=label_attr value=$label_attr|array_merge:['for' => $form->vars.id]}
                 {/if}
-                {if required}
+                {if $form->vars.required}
                     {if array_key_exists('class', $label_attr)}
                         {$label_attr.class=$label_attr.class|cat:' required'}
                     {else}
@@ -284,9 +284,12 @@
     {if !isset($empty_value)}
         {assign var=empty_value value=$form->vars.empty_value}
     {/if}
+
+    {assign var="required" value=$form->vars.required}
     {if $form->vars.required and $empty_value === null and !$form->vars.empty_value_in_choices and !$form->vars.multiple}
         {assign var=required value=false}
     {/if}
+
     <select {call widget_attributes}{if $form->vars.multiple} multiple="multiple"{/if}>
         {if $empty_value !== null}
             <option value=""{if $form->vars.required and $form->vars.value == ''} selected="selected"{/if}>{$empty_value|escape:html|trans}</option>
