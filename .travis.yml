@@ -41,7 +41,7 @@ install:
   - travis_retry composer update --prefer-dist --no-interaction $COMPOSER_FLAGS
 
 script:
-  - vendor/bin/phpunit --coverage-text
+  - vendor/bin/phpunit --coverage-clover=coverage.xml
 
 notifications:
   irc: "irc.freenode.org#noiselabs"
